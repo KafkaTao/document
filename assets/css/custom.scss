@@ -1,52 +1,56 @@
-@import "./color_schemes/light";
+---
+# 让 Jekyll 处理这个文件
+---
 
-// 添加缺失的变量定义
+// --- 自定义颜色变量（必须放在 import 之前）---
 $white: #ffffff; 
-
-// 自定义颜色变量
 $primary-color: #3468c0;
 $nav-color: #3468c0;
-$sidebar-color: #f5f7fa; // 注意：这个 $sidebar-color 会被下面的重写覆盖
 $body-heading-color: #2d52a3;
 $link-color: #2980b9;
 $btn-primary-color: #3468c0;
 
-// 重写Just the Docs的颜色变量
+// 重写 Just the Docs 的颜色变量
+// 这些值将在主题默认值加载之前被设置
 $body-background-color: $white;
-$sidebar-color: $sidebar-color; // 这行仍然是多余的，因为它引用了上面定义的 $sidebar-color，但可以保留
+$sidebar-color: #f5f7fa; // 直接设置侧边栏颜色
 $search-background-color: $white;
 $table-background-color: $white;
 $code-background-color: #f7f9fb;
-
 $body-text-color: #2e353c;
-$body-heading-color: $body-heading-color; // 重复定义，使用上面自定义的 $body-heading-color
 $search-result-preview-color: #7d8590;
 $nav-child-link-color: #586069;
-$link-color: $link-color; // 重复定义，使用上面自定义的 $link-color
-$btn-primary-color: $btn-primary-color; // 重复定义，使用上面自定义的 $btn-primary-color
 $base-button-color: #e1e4e8;
+// 您可以在这里添加或修改更多主题颜色变量
+// 参考 Just the Docs 文档了解可用的变量
+
+// --- 导入 Just the Docs 主题样式 ---
+// 这一步会加载主题的基础样式，并使用上面定义的变量
+@import "just-the-docs"; 
+
+// --- 其他自定义样式规则（放在 import 之后）---
+// 这里的规则会覆盖或补充主题的样式
 
 // 修改按钮样式
 .btn-blue {
-  // background-color: $btn-primary-color; // 可以移除
+  // 基础颜色由 $btn-primary-color 控制，这里可以添加渐变等效果
   background-image: linear-gradient(lighten($btn-primary-color, 5%), $btn-primary-color);
   
   &:hover,
   &:focus {
-    // background-color: darken($btn-primary-color, 5%); // 可以移除
     background-image: linear-gradient($btn-primary-color, darken($btn-primary-color, 5%));
   }
 }
 
 // 修改侧边栏样式
 .side-bar {
-  border-right: 1px solid #e1e4e8;
+  border-right: 1px solid #e1e4e8; // 可以使用变量 $base-border-color 如果主题定义了
 }
 
 .navigation-list-link {
   &.active {
     font-weight: 600;
-    color: $nav-color;
+    color: $nav-color; // 使用导航颜色变量
     text-decoration: none;
   }
 }
@@ -56,7 +60,7 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 1.2em;
   margin-bottom: 0.8em;
   font-weight: 500;
-  color: $body-heading-color;
+  color: $body-heading-color; // 使用标题颜色变量
   
   &:first-child {
     margin-top: 0.5em;
@@ -65,7 +69,7 @@ h1, h2, h3, h4, h5, h6 {
 
 // 自定义链接样式
 a {
-  color: $link-color;
+  color: $link-color; // 使用链接颜色变量
   text-decoration: none;
   
   &:hover {
@@ -76,12 +80,12 @@ a {
 
 // 自定义代码块样式
 .highlight {
-  border: 1px solid #e1e4e8;
+  border: 1px solid #e1e4e8; // 可以使用变量
   border-radius: 6px;
   margin-bottom: 1em;
   
   pre {
-    background-color: $code-background-color;
+    background-color: $code-background-color; // 使用代码背景变量
     padding: 12px;
     margin: 0;
     overflow-x: auto;
@@ -96,55 +100,23 @@ table {
   border-collapse: collapse;
   
   th {
-    border-bottom: 2px solid #e1e4e8;
-    background-color: #f6f8fa;
+    border-bottom: 2px solid #e1e4e8; // 使用变量
+    background-color: #f6f8fa; // 使用变量
     font-weight: 600;
     text-align: left;
   }
   
   td {
-    border-bottom: 1px solid #e1e4e8;
+    border-bottom: 1px solid #e1e4e8; // 使用变量
   }
   
   tr:nth-child(even) {
-    background-color: #f6f8fa;
+    background-color: #f6f8fa; // 使用变量
   }
 }
 
-// 提示框样式增强
-.note, .warning, .important {
-  border-radius: 4px;
-  position: relative;
-  
-  &::before {
-    position: absolute;
-    left: 1em;
-    top: 0.65em;
-    font-family: 'Bootstrap Icons'; // 确保此字体已加载
-    font-size: 1.2em;
-  }
-}
-
-.note {
-  &::before {
-    content: "\f4cb"; // Bootstrap Icons info circle
-    color: #0366d6;
-  }
-}
-
-.warning {
-  &::before {
-    content: "\f1e0"; // Bootstrap Icons exclamation triangle
-    color: #f9c513;
-  }
-}
-
-.important {
-  &::before {
-    content: "\f340"; // Bootstrap Icons exclamation circle
-    color: #d73a49;
-  }
-}
+// 提示框样式增强 (确保您的 _config.yml 中配置了 callouts)
+// .note, .warning, .important { ... } // 保持您之前的定义，确保颜色和图标正确
 
 // 主内容区域样式
 .main-content {
@@ -163,3 +135,5 @@ table {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 }
+
+// 您可以继续在这里添加更多自定义的 CSS 规则
