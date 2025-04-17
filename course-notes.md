@@ -22,6 +22,7 @@ has_children: true # 如果下面有子页面（具体课程），设为 true
     *   [操作系统](/notes/operating-systems)
 *   **选修课**
     *   [人工智能导论](/notes/ai-introduction)
+    *   [biji](/练习原文排版好的 1.md)
 
 ---
 
