@@ -8,86 +8,82 @@ title: 我的文档网站
 description: 一个使用 Just the Docs 主题搭建的文档网站。
 
 # --- Just the Docs 特有配置 ---
-# 启用网站内搜索
+# 启用网站内搜索 (保持启用)
 search_enabled: true
-# 设置搜索界面文本
-search:
-  heading_level: 2
-  previews: 3
-  preview_words_before: 5
-  preview_words_after: 10
-  tokenizer_separator: /[\s\-/]+/
-  rel_url: true
-  button: true
+# 搜索配置 (使用默认值，注释掉复杂配置)
+# search:
+#   heading_level: 2
+#   previews: 3
+#   preview_words_before: 5
+#   preview_words_after: 10
+#   tokenizer_separator: /[\s\-/]+/
+#   rel_url: true
+#   button: true
 
-# 自定义颜色方案
-color_scheme: custom
+# 颜色方案 (暂时移除自定义，使用默认)
+# color_scheme: custom 
 
-# 启用复制代码按钮
+# 启用复制代码按钮 (保持启用)
 enable_copy_code_button: true
 
-# 配置页脚内容
-footer_content: "版权所有 &copy; 2025 我的文档网站"
+# 配置页脚内容 (暂时移除自定义，使用默认)
+# footer_content: "版权所有 &copy; 2025 我的文档网站"
 
-# 返回顶部按钮
+# 返回顶部按钮 (保持启用)
 back_to_top: true
-back_to_top_text: "返回顶部"
+# back_to_top_text: "返回顶部" # 使用默认文本
 
-# 导航设置
-nav_sort: case_sensitive # 或者使用 case_insensitive
-# 收起侧边栏的链接文本
-collapse_title: "收起侧边栏"
-# 导航按钮的文本
-aux_links:
-  "GitHub":
-    - "//github.com/username/repository"
+# 导航设置 (使用默认值)
+# nav_sort: case_sensitive 
+# collapse_title: "收起侧边栏" 
+# aux_links:
+#   "GitHub":
+#     - "//github.com/username/repository"
 
-# 链接外观样式
-heading_anchors: true
+# 链接外观样式 (使用默认值)
+# heading_anchors: true
 
-# 支持基于callouts的提示框
-callouts:
-  note:
-    title: 注意
-    color: blue
-  warning:
-    title: 警告
-    color: yellow
-  important:
-    title: 重要
-    color: red
-  new:
-    title: 新功能
-    color: green
-  tip:
-    title: 提示
-    color: purple
+# Callouts (暂时移除自定义，如果需要再添加)
+# callouts:
+#   note:
+#     title: 注意
+#     color: blue
+#   warning:
+#     title: 警告
+#     color: yellow
+#   important:
+#     title: 重要
+#     color: red
+#   new:
+#     title: 新功能
+#     color: green
+#   tip:
+#     title: 提示
+#     color: purple
 
-# Mermaid图表支持
-mermaid:
-  # 版本号
-  version: "9.4.3"
-  # 图表配置选项
-  # 更多配置请参考: https://mermaid-js.github.io/mermaid/#/Setup
-  config:
-    theme: default
-    flowchart:
-      htmlLabels: true
-      curve: linear
-    er:
-      layoutDirection: TB
-      entityPadding: 15
-      useMaxWidth: true
-    classDiagram:
-      useMaxWidth: true
-    sequence:
-      useMaxWidth: true
-      boxMargin: 10
-      noteMargin: 10
-      mirrorActors: false
-      messageMargin: 35
+# Mermaid图表支持 (暂时移除，如果需要再添加)
+# mermaid:
+#   version: "9.4.3"
+#   config:
+#     theme: default
+#     flowchart:
+#       htmlLabels: true
+#       curve: linear
+#     er:
+#       layoutDirection: TB
+#       entityPadding: 15
+#       useMaxWidth: true
+#     classDiagram:
+#       useMaxWidth: true
+#     sequence:
+#       useMaxWidth: true
+#       boxMargin: 10
+#       noteMargin: 10
+#       mirrorActors: false
+#       messageMargin: 35
 
 # --- 插件设置 ---
+# 确保这些插件在 Gemfile 中也存在或由 github-pages gem 提供
 plugins:
   - jekyll-remote-theme
   - jekyll-seo-tag
