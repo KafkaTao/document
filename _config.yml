@@ -3,9 +3,9 @@ remote_theme: just-the-docs/just-the-docs
 
 # --- 基础网站设置 ---
 # 您的网站标题，会显示在浏览器标签页和导航栏顶部
-title: 我的文档网站
+title: 我的学习笔记
 # 网站的简短描述，可能被搜索引擎使用
-description: 一个使用 Just the Docs 主题搭建的文档网站。
+description: 一个分享大学学习笔记、项目实践和资源的个人网站。
 
 # --- Just the Docs 特有配置 ---
 # 启用网站内搜索 (保持启用)

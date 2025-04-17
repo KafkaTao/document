@@ -21,6 +21,8 @@ permalink: /documents/
 - [教程](/tutorials) - 学习指南和操作教程
 - [参考资料](/reference) - 技术规范和参考文档
 
+<!-- 移除下面的 "推荐文档" 部分 -->
+<!--
 ## 推荐文档
 {: .text-delta }
 
@@ -50,6 +52,7 @@ permalink: /documents/
    update="2025-04-05" 
    type="教程" 
 %}
+-->
 
 ## PDF 文档集合
 
