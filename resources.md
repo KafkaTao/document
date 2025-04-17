@@ -22,6 +22,12 @@ permalink: /resources/
 {: .note }
 > PDF 在线预览使用了 [PDF.js](https://mozilla.github.io/pdf.js/) 技术。
 
+## 文章与笔记
+
+这里是一些 Markdown 格式的文章或笔记：
+
+*   [练习原文排版好的 1](/练习原文排版好的%201) - 关于技能提升、学习方法等的笔记 (来自 Justin Skycak)。
+
 ## 推荐工具
 
 *   **[Obsidian](https://obsidian.md/)**: 非常适合用来构建个人知识库的笔记软件。

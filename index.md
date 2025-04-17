@@ -5,56 +5,79 @@ nav_order: 1
 permalink: /
 ---
 
-# 欢迎来到我的学习空间
-{: .fs-9 }
+# 知识文档中心
 
-这里是我记录大学学习笔记、整理项目经验和分享有用资源的地方。
+{: .fs-9 }
+欢迎访问我的文档网站，这里收集了各类学习资料、教程和参考文献。
 {: .fs-6 .fw-300 }
 
-[查看课程笔记](/course-notes){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
-[浏览资源分享](/resources){: .btn .fs-5 .mb-4 .mb-md-0 }
+[开始浏览](#开始浏览){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
+[关于我们](/about){: .btn .fs-5 .mb-4 .mb-md-0 }
 
 ---
 
-## 主要内容
+## 开始浏览
 
-<div class="d-flex flex-wrap gutter">
-  <div class="col-md-6 mb-4" markdown="1">
-    ### 📚 课程笔记
-    {: .fs-5 .fw-500 }
-    整理了我在大学期间学习各个课程的笔记，希望能帮助到你。
-    [前往笔记](/course-notes){: .btn .btn-outline .mt-2}
-  </div>
-  <div class="col-md-6 mb-4" markdown="1">
-    ### 💡 项目实践
-    {: .fs-5 .fw-500 }
-    记录我参与或独立完成的一些项目，包括思路、过程和成果。
-    [查看项目](/projects){: .btn .btn-outline .mt-2}
-  </div>
-  <div class="col-md-6 mb-4" markdown="1">
-    ### 🛠️ 资源分享
-    {: .fs-5 .fw-500 }
-    收集和分享一些有用的学习资料、工具和网站链接。
-    [浏览资源](/resources){: .btn .btn-outline .mt-2}
-  </div>
-  <div class="col-md-6 mb-4" markdown="1">
-    ### 😊 关于我
-    {: .fs-5 .fw-500 }
-    简单介绍一下我自己和建立这个网站的初衷。
-    [了解更多](/about){: .btn .btn-outline .mt-2}
-  </div>
+本站点提供多种资源，包括教程、参考材料和可下载的文档。您可以通过以下几种方式开始使用：
+
+### 快速链接
+
+- **[教程](/tutorials)** - 学习指南和教程集合
+- **[参考资料](/reference)** - 技术参考和文档
+- **[文档资料](/documents)** - 可下载的PDF和文档
+
+### 特色内容
+
+<div class="code-example" markdown="1">
+#### 最新文档
+{: .no_toc }
+
+- [The Math Academy Way](/pdf-viewer.html?file=/assets/pdfs/The Math Academy Way.pdf) - 数学学院教学方法介绍
+- [示例文档 1](/pdf-viewer.html?file=/assets/pdfs/document1.pdf) - 参考材料
+
+#### 热门教程
+{: .no_toc }
+
+- [入门指南](#) - 新手上路的必备知识  <!-- TODO: 更新 '#' 为实际链接 -->
+- [进阶教程](#) - 提升专业技能      <!-- TODO: 更新 '#' 为实际链接 -->
 </div>
 
+## 新增内容
+
+我们会定期更新网站内容，确保为您提供最新的学习资料。最近更新：
+
+| 日期 | 标题 | 类型 |
+|:-----|:-----|:-----|
+| 2025-04-15 | The Math Academy Way | 文档 |
+| 2025-04-10 | 入门教程 | 教程 |
+| 2025-04-05 | 参考资料 | 参考 |
+
 ---
 
-## 最近更新
+## 关于本站
 
-我会不定期更新内容，欢迎常来看看！
-
-*   [添加] 新增了《计算机网络》课程笔记 - 2025-05-10
-*   [分享] 更新了 PDF 资源列表 - 2025-05-08
-*   [项目] 添加了“个人博客搭建”项目记录 - 2025-05-05
+本文档网站使用 [Just the Docs](https://just-the-docs.github.io/just-the-docs/) 主题构建，旨在提供清晰、层次化的内容导航和优秀的搜索体验。
 
 ---
 
-*本站使用 [Jekyll](https://jekyllrb.com/) 和 [Just the Docs](https://just-the-docs.github.io/just-the-docs/) 主题构建。*
+<!-- 移除从这里开始的重复内容 -->
+<!--
+title: Home
+---
+# 欢迎来到我的文档网站
+
+这是一个基于 Just the Docs 主题构建的文档站点。你可以在此查看教程、参考文档、博客文章等。
+
+- 文档浏览
+- 内部搜索
+- 博客和文章
+- 自定义配置
+
+```mermaid
+flowchart LR
+  A[用户] --> B{操作}
+  B --> |搜索| C[Search]
+  B --> |阅读| D[Documents]
+  B --> |博客| E[Blog]
+```
+-->
