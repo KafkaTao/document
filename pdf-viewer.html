@@ -4,30 +4,120 @@ title: PDF 查看器
 nav_exclude: true
 ---
 
-<div>
-  <canvas id="pdf-viewer"></canvas>
+<div class="pdf-container">
+  <div class="pdf-controls">
+    <div class="file-name" id="pdf-name">正在加载...</div>
+    <div class="nav-controls">
+      <button id="prev-page">上一页</button>
+      <span id="page-info">第 <span id="current-page">1</span> 页，共 <span id="total-pages">?</span> 页</span>
+      <button id="next-page">下一页</button>
+      <select id="zoom-level">
+        <option value="0.5">50%</option>
+        <option value="1">100%</option>
+        <option value="1.5" selected>150%</option>
+        <option value="2">200%</option>
+      </select>
+    </div>
+  </div>
+  <div class="canvas-container">
+    <canvas id="pdf-viewer"></canvas>
+  </div>
 </div>
+
+<style>
+  .pdf-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  .pdf-controls {
+    width: 100%;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+  .file-name {
+    font-weight: bold;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .nav-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+  }
+  .canvas-container {
+    border: 1px solid #ddd;
+    overflow: auto;
+    max-height: 80vh;
+  }
+</style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.min.js"></script>
 <script>
   // PDF.js 配置
   const url = new URL(window.location.href);
   const pdfUrl = url.searchParams.get("file");
+  let pdfDoc = null;
+  let pageNum = 1;
+  let scale = 1.5;
+  const canvas = document.getElementById("pdf-viewer");
+  const context = canvas.getContext("2d");
   
-  pdfjsLib.getDocument(pdfUrl).promise.then(function(pdf) {
-    pdf.getPage(1).then(function(page) {
-      const scale = 1.5;
+  // 显示文件名
+  const fileName = pdfUrl.split('/').pop();
+  document.getElementById('pdf-name').textContent = fileName;
+  
+  // 按钮事件
+  document.getElementById('prev-page').addEventListener('click', () => {
+    if (pageNum <= 1) return;
+    pageNum--;
+    renderPage(pageNum);
+  });
+  
+  document.getElementById('next-page').addEventListener('click', () => {
+    if (pageNum >= pdfDoc.numPages) return;
+    pageNum++;
+    renderPage(pageNum);
+  });
+  
+  document.getElementById('zoom-level').addEventListener('change', (e) => {
+    scale = parseFloat(e.target.value);
+    renderPage(pageNum);
+  });
+  
+  // 渲染页面函数
+  function renderPage(num) {
+    pdfDoc.getPage(num).then(function(page) {
       const viewport = page.getViewport({ scale });
       
-      const canvas = document.getElementById("pdf-viewer");
-      const context = canvas.getContext("2d");
       canvas.height = viewport.height;
       canvas.width = viewport.width;
       
-      page.render({
+      // 更新页码显示
+      document.getElementById('current-page').textContent = num;
+      
+      const renderContext = {
         canvasContext: context,
         viewport: viewport
-      });
+      };
+      
+      page.render(renderContext);
     });
+  }
+  
+  // 加载PDF文档
+  pdfjsLib.getDocument(pdfUrl).promise.then(function(pdf) {
+    pdfDoc = pdf;
+    document.getElementById('total-pages').textContent = pdf.numPages;
+    renderPage(pageNum);
+  }).catch(function(error) {
+    console.error('PDF加载错误:', error);
+    document.getElementById('pdf-name').textContent = '文件加载失败';
   });
 </script>
