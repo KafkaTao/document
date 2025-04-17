@@ -1,0 +1,76 @@
+<div class="footer-custom">
+  <div class="footer-links">
+    <div class="footer-links-left">
+      <ul>
+        <li><a href="/about">关于我们</a></li>
+        <li><a href="/search">站内搜索</a></li>
+        <li><a href="/documents">文档资料</a></li>
+      </ul>
+    </div>
+    <div class="footer-links-center">
+      <p>
+        <i class="bi bi-book"></i> 知识文档中心
+        <br>
+        <small>专注知识分享与传播</small>
+      </p>
+    </div>
+    <div class="footer-links-right">
+      <ul>
+        <li><a href="javascript:void(0)"><i class="bi bi-github"></i> GitHub</a></li>
+        <li><a href="javascript:void(0)"><i class="bi bi-twitter"></i> Twitter</a></li>
+        <li><a href="javascript:void(0)"><i class="bi bi-envelope"></i> 联系我们</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<style>
+  .footer-custom {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e1e4e8;
+  }
+  
+  .footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    font-size: 0.9rem;
+  }
+  
+  .footer-links ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .footer-links li {
+    margin-bottom: 0.5rem;
+  }
+  
+  .footer-links a {
+    color: #0366d6;
+    text-decoration: none;
+  }
+  
+  .footer-links a:hover {
+    text-decoration: underline;
+  }
+  
+  .footer-links-center {
+    text-align: center;
+  }
+  
+  @media (max-width: 768px) {
+    .footer-links {
+      flex-direction: column;
+    }
+    
+    .footer-links-left,
+    .footer-links-center,
+    .footer-links-right {
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+  }
+</style>

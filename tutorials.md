@@ -1,18 +1,31 @@
 ---
-layout: default
-title: 教程
-parent: 文档资料
-nav_order: 1
+title: Tutorials
 ---
-
 # 教程
 
-这里是各类教程的集合。
+本节介绍如何使用 Just the Docs 快速建立和定制你的文档站点。
 
-## 入门教程
+## 1. 安装 Jekyll 和主题
 
-这里是入门教程的内容...
+```bash
+gem install bundler jekyll
+bundle add just-the-docs
+```
 
-## 进阶教程
+## 2. 使用模板创建新站点
 
-这里是进阶教程的内容...
+```bash
+git clone https://github.com/just-the-docs/template.git my-site
+cd my-site
+bundle install
+bundle exec jekyll serve --livereload
+```
+
+## 3. 配置站点
+
+在 `_config.yml` 中添加或修改配置，示例：
+
+```yaml
+remote_theme: just-the-docs/just-the-docs
+search_enabled: true
+```

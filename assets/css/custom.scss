@@ -1,0 +1,165 @@
+---
+---
+
+@import "./color_schemes/light";
+
+// 自定义颜色变量
+$primary-color: #3468c0;
+$nav-color: #3468c0;
+$sidebar-color: #f5f7fa;
+$body-heading-color: #2d52a3;
+$link-color: #2980b9;
+$btn-primary-color: #3468c0;
+
+// 重写Just the Docs的颜色变量
+$body-background-color: $white;
+$sidebar-color: $sidebar-color;
+$search-background-color: $white;
+$table-background-color: $white;
+$code-background-color: #f7f9fb;
+
+$body-text-color: #2e353c;
+$body-heading-color: $body-heading-color;
+$search-result-preview-color: #7d8590;
+$nav-child-link-color: #586069;
+$link-color: $link-color;
+$btn-primary-color: $btn-primary-color;
+$base-button-color: #e1e4e8;
+
+// 修改按钮样式
+.btn-blue {
+  background-color: $btn-primary-color;
+  background-image: linear-gradient(lighten($btn-primary-color, 5%), $btn-primary-color);
+  
+  &:hover,
+  &:focus {
+    background-color: darken($btn-primary-color, 5%);
+    background-image: linear-gradient($btn-primary-color, darken($btn-primary-color, 5%));
+  }
+}
+
+// 修改侧边栏样式
+.side-bar {
+  border-right: 1px solid #e1e4e8;
+}
+
+.navigation-list-link {
+  &.active {
+    font-weight: 600;
+    color: $nav-color;
+    text-decoration: none;
+  }
+}
+
+// 自定义标题样式
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 1.2em;
+  margin-bottom: 0.8em;
+  font-weight: 500;
+  color: $body-heading-color;
+  
+  &:first-child {
+    margin-top: 0.5em;
+  }
+}
+
+// 自定义链接样式
+a {
+  color: $link-color;
+  text-decoration: none;
+  
+  &:hover {
+    color: darken($link-color, 10%);
+    text-decoration: underline;
+  }
+}
+
+// 自定义代码块样式
+.highlight {
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  margin-bottom: 1em;
+  
+  pre {
+    background-color: $code-background-color;
+    padding: 12px;
+    margin: 0;
+    overflow-x: auto;
+  }
+}
+
+// 表格样式优化
+table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  
+  th {
+    border-bottom: 2px solid #e1e4e8;
+    background-color: #f6f8fa;
+    font-weight: 600;
+    text-align: left;
+  }
+  
+  td {
+    border-bottom: 1px solid #e1e4e8;
+  }
+  
+  tr:nth-child(even) {
+    background-color: #f6f8fa;
+  }
+}
+
+// 提示框样式增强
+.note, .warning, .important {
+  border-radius: 4px;
+  position: relative;
+  
+  &::before {
+    position: absolute;
+    left: 1em;
+    top: 0.65em;
+    font-family: 'Bootstrap Icons';
+    font-size: 1.2em;
+  }
+}
+
+.note {
+  &::before {
+    content: "\f4cb"; // Bootstrap Icons info circle
+    color: #0366d6;
+  }
+}
+
+.warning {
+  &::before {
+    content: "\f1e0"; // Bootstrap Icons exclamation triangle
+    color: #f9c513;
+  }
+}
+
+.important {
+  &::before {
+    content: "\f340"; // Bootstrap Icons exclamation circle
+    color: #d73a49;
+  }
+}
+
+// 主内容区域样式
+.main-content {
+  h1, h2, h3, h4, h5, h6 {
+    & + p {
+      margin-top: -0.4em;
+    }
+  }
+  
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+}

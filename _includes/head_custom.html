@@ -1,0 +1,112 @@
+<!-- 添加 Mermaid 支持 -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    mermaid.init(undefined, ".language-mermaid");
+  });
+</script>
+
+<!-- 添加自定义样式 -->
+<style>
+  /* 卡片样式 */
+  .card {
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  }
+  
+  .card-title {
+    margin-top: 0;
+    font-weight: 500;
+  }
+  
+  /* 图片样式 */
+  .img-thumbnail {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    padding: 0.25rem;
+    background-color: #fff;
+  }
+  
+  /* 按钮样式增强 */
+  .btn-large {
+    padding: 0.75em 1.25em;
+    font-size: 1.2em;
+  }
+  
+  /* 博客文章样式 */
+  .post-meta {
+    color: #6a737d;
+    font-size: 0.9em;
+  }
+  
+  .post-list {
+    list-style: none;
+    padding-left: 0;
+  }
+  
+  .post-list li {
+    margin-bottom: 30px;
+  }
+  
+  .post-link {
+    font-weight: 600;
+  }
+  
+  /* 文档页面特殊样式 */
+  .document-preview {
+    background-color: #f6f8fa;
+    border-left: 4px solid #0366d6;
+    padding: 15px;
+    margin-bottom: 20px;
+  }
+</style>
+
+<!-- 添加字体图标支持 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+<!-- 添加自定义脚本 -->
+<script>
+  // 文档加载完成后执行
+  document.addEventListener("DOMContentLoaded", function() {
+    // 添加平滑滚动
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelector(this.getAttribute('href')).scrollIntoView({
+          behavior: 'smooth'
+        });
+      });
+    });
+    
+    // 添加代码复制按钮(如果Just the Docs没有启用)
+    if (typeof window.addCopyButtons !== 'function') {
+      addCopyButtonsToCodeBlocks();
+    }
+  });
+  
+  // 为代码块添加复制按钮
+  function addCopyButtonsToCodeBlocks() {
+    document.querySelectorAll('pre.highlight').forEach(pre => {
+      const copyButton = document.createElement('button');
+      copyButton.className = 'copy-code-button';
+      copyButton.textContent = '复制';
+      
+      pre.appendChild(copyButton);
+      
+      copyButton.addEventListener('click', () => {
+        const code = pre.querySelector('code').innerText;
+        navigator.clipboard.writeText(code);
+        
+        copyButton.textContent = '已复制!';
+        setTimeout(() => {
+          copyButton.textContent = '复制';
+        }, 2000);
+      });
+    });
+  }
+</script>
