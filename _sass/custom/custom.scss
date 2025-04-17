@@ -1,32 +1,4 @@
-@import "./color_schemes/light";
-
-// 添加缺失的变量定义
-$white: #ffffff; 
-
-// 自定义颜色变量
-$primary-color: #3468c0;
-$nav-color: #3468c0;
-$sidebar-color: #f5f7fa; // 注意：这个 $sidebar-color 会被下面的重写覆盖
-$body-heading-color: #2d52a3;
-$link-color: #2980b9;
-$btn-primary-color: #3468c0;
-
-// 重写Just the Docs的颜色变量
-$body-background-color: $white;
-$sidebar-color: $sidebar-color; // 这行仍然是多余的，因为它引用了上面定义的 $sidebar-color，但可以保留
-$search-background-color: $white;
-$table-background-color: $white;
-$code-background-color: #f7f9fb;
-
-$body-text-color: #2e353c;
-$body-heading-color: $body-heading-color; // 重复定义，使用上面自定义的 $body-heading-color
-$search-result-preview-color: #7d8590;
-$nav-child-link-color: #586069;
-$link-color: $link-color; // 重复定义，使用上面自定义的 $link-color
-$btn-primary-color: $btn-primary-color; // 重复定义，使用上面自定义的 $btn-primary-color
-$base-button-color: #e1e4e8;
-
-// 修改按钮样式
+// --- 其他自定义样式规则 ---
 .btn-blue {
   // background-color: $btn-primary-color; // 可以移除
   background-image: linear-gradient(lighten($btn-primary-color, 5%), $btn-primary-color);
