@@ -1,21 +1,43 @@
-# 指定使用 Just the Docs 主题
-remote_theme: just-the-docs/just-the-docs
+# --- 网站基本信息 ---
+title: 你的文档标题 # 例如：My Project Documentation
+description: 你的文档描述 # 例如：Official documentation for My Project.
+url: "https://<your-username>.github.io"  # 您的 GitHub Pages 基础 URL
+baseurl: "/document" # !!! 非常重要：设置为您的仓库名称，前面加斜杠 /
 
-# --- 基础网站设置 ---
-# 您的网站标题，会显示在浏览器标签页和导航栏顶部
-title: 我的文档网站
-# 网站的简短描述，可能被搜索引擎使用
-description: 一个使用 Just the Docs 主题搭建的文档网站。
+# --- GitHub Pages & Just the Docs 配置 ---
+# 1. 指定远程主题
+remote_theme: just-the-docs/just-the-docs@latest # 或者指定一个具体的版本，例如 @v0.4.0
 
-# --- Just the Docs 特有配置 (可选，可后续根据文档添加) ---
-# 启用网站内搜索 (默认是开启的)
-# search_enabled: true
-#
-# 设置网站的颜色主题 (可选 'light' 或 'dark')
-# color_scheme: light
-#
-# 配置页脚内容 (示例)
-# footer_content: "版权所有 &copy; 2025 KafkaTao."
+# 2. (可选但推荐) 启用 Jekyll 的 GitHub 元数据插件 (通常 GitHub Pages 会自动启用)
+# plugins:
+#   - jekyll-remote-theme # 确保 jekyll-remote-theme 插件启用
 
-# 更多配置选项请参考 Just the Docs 官方文档：
-# https://just-the-docs.github.io/just-the-docs/docs/configuration/
+# --- Just the Docs 特定配置 ---
+# (根据您的需要添加，例如颜色、搜索等)
+# color_scheme: dark
+search_enabled: true
+# nav_sort: nav_order # 如果您想通过 front matter 控制导航顺序
+
+# --- 其他 Jekyll 配置 ---
+# exclude: [ "LICENSE", "README.md" ] # 排除不需要构建的文件# --- 网站基本信息 ---
+title: 你的文档标题 # 例如：My Project Documentation
+description: 你的文档描述 # 例如：Official documentation for My Project.
+url: "https://<your-username>.github.io"  # 您的 GitHub Pages 基础 URL
+baseurl: "/document" # !!! 非常重要：设置为您的仓库名称，前面加斜杠 /
+
+# --- GitHub Pages & Just the Docs 配置 ---
+# 1. 指定远程主题
+remote_theme: just-the-docs/just-the-docs@latest # 或者指定一个具体的版本，例如 @v0.4.0
+
+# 2. (可选但推荐) 启用 Jekyll 的 GitHub 元数据插件 (通常 GitHub Pages 会自动启用)
+# plugins:
+#   - jekyll-remote-theme # 确保 jekyll-remote-theme 插件启用
+
+# --- Just the Docs 特定配置 ---
+# (根据您的需要添加，例如颜色、搜索等)
+# color_scheme: dark
+search_enabled: true
+# nav_sort: nav_order # 如果您想通过 front matter 控制导航顺序
+
+# --- 其他 Jekyll 配置 ---
+# exclude: [ "LICENSE", "README.md" ] # 排除不需要构建的文件
