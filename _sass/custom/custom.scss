@@ -2,26 +2,4 @@
 # 让 Jekyll 处理这个文件
 ---
 
-// --- 自定义颜色变量（必须放在 import 之前）---
-// 示例：您可以取消注释并修改这些变量来覆盖主题默认值
-// $primary-color: #007bff; // 例如，设置为蓝色
-// $link-color: #0056b3;
-
-// --- 导入 Just the Docs 主题样式 ---
-// 这一步会加载主题的基础样式，并使用上面定义的变量（如果取消注释）
-@import "just-the-docs"; // 确保有分号
-
-// --- 其他自定义样式规则（放在 import 之后）---
-// 这里的规则会覆盖或补充主题的样式
-// 保持此部分为空或仅添加绝对必要的样式以简化
-
-// 例如，如果您确实需要蓝色按钮：
-// .btn-blue {
-//   background-color: #007bff;
-//   border-color: #007bff;
-//   color: white;
-//   &:hover {
-//     background-color: darken(#007bff, 10%);
-//     border-color: darken(#007bff, 10%);
-//   }
-// }
+// 此文件已清空以恢复默认主题样式
