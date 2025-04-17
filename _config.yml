@@ -20,9 +20,9 @@ search_enabled: true
 
 # --- 其他 Jekyll 配置 ---
 # exclude: [ "LICENSE", "README.md" ] # 排除不需要构建的文件# --- 网站基本信息 ---
-title: 你的文档标题 # 例如：My Project Documentation
-description: 你的文档描述 # 例如：Official documentation for My Project.
-url: "https://<your-username>.github.io"  # 您的 GitHub Pages 基础 URL
+title: Kafka的笔记盒 # 例如：My Project Documentation
+description: 公开访问 # 例如：Official documentation for My Project.
+url: "https://kafkatao.github.io"  # 您的 GitHub Pages 基础 URL
 baseurl: "/document" # !!! 非常重要：设置为您的仓库名称，前面加斜杠 /
 
 # --- GitHub Pages & Just the Docs 配置 ---
