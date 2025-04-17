@@ -13,6 +13,7 @@ has_children: true
 
 * [示例文档 1](/assets/pdfs/document1.pdf)
 * [示例文档 2](/assets/pdfs/document2.pdf)
+* [在线查看文档](/pdf-viewer.html?file=/assets/pdfs/The Math Academy Way.pdf)
 
 ## Word 文档
 

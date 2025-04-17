@@ -1,0 +1,33 @@
+---
+layout: default
+title: PDF 查看器
+nav_exclude: true
+---
+
+<div>
+  <canvas id="pdf-viewer"></canvas>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.min.js"></script>
+<script>
+  // PDF.js 配置
+  const url = new URL(window.location.href);
+  const pdfUrl = url.searchParams.get("file");
+  
+  pdfjsLib.getDocument(pdfUrl).promise.then(function(pdf) {
+    pdf.getPage(1).then(function(page) {
+      const scale = 1.5;
+      const viewport = page.getViewport({ scale });
+      
+      const canvas = document.getElementById("pdf-viewer");
+      const context = canvas.getContext("2d");
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+      
+      page.render({
+        canvasContext: context,
+        viewport: viewport
+      });
+    });
+  });
+</script>
