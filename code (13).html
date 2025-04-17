@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>哈利波特人物关系图谱 (增强版 v2)</title>
+
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Vis.js Network via CDN -->
+    <link href="https://visjs.github.io/vis-network/standalone/umd/vis-network.min.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="https://visjs.github.io/vis-network/standalone/umd/vis-network.min.js"></script>
+
+    <style type="text/tailwindcss">
+        /* Base Styles */
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', 'Helvetica Neue', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow: hidden; /* Prevent body scrollbars */
+            background-color: #e5e7eb; /* Tailwind gray-200 */
+        }
+
+        /* Layout Heights */
+        #main-content {
+             height: calc(100vh - 4.5rem); /* Adjust based on header height */
+        }
+        #info-panel, #network-container {
+            height: 100%; /* Fill parent */
+        }
+        #network {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: #f9fafb; /* Tailwind gray-50 */
+        }
+
+        /* Scrollbar Hiding */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Search Input Focus */
+        #search-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5); /* Tailwind indigo-500 focus ring */
+            border-color: #6366f1; /* Tailwind indigo-500 */
+        }
+
+        /* Vis.js Tooltip Styling */
+        div.vis-tooltip {
+            position: absolute;
+            visibility: hidden;
+            padding: 10px 15px;
+            font-size: 13px;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.88);
+            border: 1px solid #444;
+            border-radius: 6px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            max-width: 380px;
+            white-space: pre-wrap;
+            z-index: 1070; /* High z-index */
+            pointer-events: none;
+        }
+        div.vis-tooltip strong { color: #a5b4fc; } /* Tailwind indigo-300 */
+        div.vis-tooltip em { color: #fcd34d; font-style: italic;} /* Tailwind amber-300 */
+
+        /* Filter Section Styling */
+        #filter-container .filter-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 8px;
+            border-radius: 12px; /* Pill shape */
+            margin-right: 6px;
+            margin-bottom: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            border: 1px solid transparent;
+        }
+        #filter-container .filter-badge input[type="checkbox"] {
+            display: none; /* Hide checkbox, use label click */
+        }
+        #filter-container .filter-badge:hover {
+            opacity: 0.85;
+        }
+        #filter-container .filter-badge.selected {
+            /* Style for selected filters - border or background */
+             border-color: #333;
+             box-shadow: 0 0 0 1px rgba(0,0,0,0.5);
+        }
+         #filter-container .filter-badge .color-swatch {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+            border: 1px solid rgba(0,0,0,0.2);
+         }
+
+        /* Toggle Switch Styling */
+        .toggle-checkbox:checked {
+            @apply: right-0 border-green-400;
+            right: 0;
+            border-color: #4ade80;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            @apply: bg-green-400;
+            background-color: #4ade80;
+        }
+
+        /* Side Panel Image Placeholder */
+        .info-image-placeholder {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #d1d5db; /* gray-300 */
+            color: #6b7280; /* gray-500 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        /* Legend Styling */
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+        .legend-swatch {
+            width: 12px;
+            height: 12px;
+            margin-right: 6px;
+            border: 1px solid rgba(0,0,0,0.3);
+            display: inline-block;
+        }
+
+    </style>
+</head>
+<body class="text-gray-800 flex flex-col h-screen antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-gray-800 via-slate-800 to-neutral-900 text-white shadow-lg py-3 px-6 flex flex-col md:flex-row justify-between items-center gap-4 flex-shrink-0" style="height: 4.5rem;">
+        <h1 class="text-xl md:text-2xl font-bold tracking-tight text-center md:text-left whitespace-nowrap text-amber-100">
+            哈利波特人物关系图谱 (增强版 v2) ✨
+        </h1>
+        <div class="flex flex-wrap justify-center md:justify-end items-center gap-x-4 gap-y-2 w-full md:w-auto">
+            <!-- Search -->
+            <div class="flex items-center space-x-2">
+                <input type="text" id="search-input" placeholder="搜索人物 (名称/描述)..." class="px-3 py-1.5 rounded-md border border-gray-600 bg-gray-700 text-gray-200 text-sm focus:border-indigo-500 transition duration-200 w-40 sm:w-56 placeholder-gray-400"/>
+                <button id="clear-search-button" title="清除搜索" class="text-gray-400 hover:text-white transition duration-200 p-1 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <!-- Layout Controls -->
+            <div class="flex items-center space-x-3">
+                 <div class="flex items-center" title="启用/禁用物理引擎自动布局">
+                    <span class="text-sm mr-2">物理引擎:</span>
+                    <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" name="toggle" id="physics-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-gray-300"/>
+                        <label for="physics-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                    </div>
+                 </div>
+                <button id="reset-layout-button" title="重置布局并解除节点固定" class="bg-amber-500 hover:bg-amber-600 text-black text-xs font-bold py-1.5 px-3 rounded transition duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-amber-400">
+                    重置布局
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main id="main-content" class="flex-grow flex flex-row overflow-hidden">
+
+        <!-- Network Graph Container -->
+        <div id="network-container" class="flex-grow h-full relative bg-gray-50">
+            <div id="network"></div>
+             <!-- Loading Overlay -->
+            <div id="loading-overlay" class="absolute inset-0 flex items-center justify-center bg-gray-200 bg-opacity-80 z-50 hidden">
+                <div class="text-center p-5 bg-white rounded-lg shadow-xl">
+                    <svg class="animate-spin h-8 w-8 text-indigo-600 mx-auto mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    <p id="loading-message" class="text-lg font-semibold text-gray-700">正在加载图谱...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Side Information Panel -->
+        <aside id="info-panel" class="w-0 lg:w-96 bg-white shadow-lg flex flex-col transition-all duration-300 ease-in-out flex-shrink-0 h-full hidden lg:flex">
+
+            <!-- Panel Header / Close Button -->
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center flex-shrink-0">
+                 <h2 id="info-title" class="text-xl font-semibold text-indigo-700">详细信息</h2>
+                 <button id="close-panel-button" class="lg:hidden text-gray-500 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 rounded p-1">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                 </button>
+            </div>
+
+            <!-- Scrollable Content Area -->
+            <div class="flex-grow overflow-y-auto no-scrollbar">
+                <!-- Info Content Section -->
+                <div id="info-content-section" class="p-5 border-b border-gray-200">
+                     <div id="info-content" class="text-sm space-y-3">
+                         <p class="text-gray-500 italic">请点击图谱中的节点或关系，或使用上方控件进行探索。</p>
+                     </div>
+                </div>
+
+                <!-- Filter Section -->
+                <div id="filter-container" class="p-5 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">按分组过滤</h3>
+                    <div id="filter-controls">
+                        <!-- Filter badges will be populated by JS -->
+                    </div>
+                     <button id="filter-select-all" class="mt-3 mr-2 text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-1 px-2 rounded">全选</button>
+                     <button id="filter-select-none" class="mt-3 text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-1 px-2 rounded">全不选</button>
+                </div>
+
+                <!-- Legend Section -->
+                <div id="legend-container" class="p-5">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">图例</h3>
+                    <div id="legend-items" class="space-y-1">
+                        <!-- Legend items will be populated by JS -->
+                         <p class="text-xs text-gray-500 italic">图例根据当前可见分组生成。</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- Constants ---
+            const DIM_OPACITY_NODE = 0.15;
+            const DIM_OPACITY_EDGE = 0.1;
+            const HIGHLIGHT_OPACITY_NODE = 1.0;
+            const HIGHLIGHT_OPACITY_EDGE = 0.9;
+            const TOOLTIP_DELAY = 250;
+            const STABILIZATION_ITERATIONS = 2000;
+            const FIT_ANIMATION_DURATION = 600;
+
+            // --- DOM Elements ---
+            const networkContainer = document.getElementById('network');
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const loadingMessage = document.getElementById('loading-message');
+            const infoPanel = document.getElementById('info-panel');
+            const infoTitle = document.getElementById('info-title');
+            const infoContent = document.getElementById('info-content');
+            const closePanelButton = document.getElementById('close-panel-button');
+            const searchInput = document.getElementById('search-input');
+            const clearSearchButton = document.getElementById('clear-search-button');
+            const physicsToggle = document.getElementById('physics-toggle');
+            const resetLayoutButton = document.getElementById('reset-layout-button');
+            const filterControls = document.getElementById('filter-controls');
+            const filterSelectAll = document.getElementById('filter-select-all');
+            const filterSelectNone = document.getElementById('filter-select-none');
+            const legendItemsContainer = document.getElementById('legend-items');
+
+            // --- Global State ---
+            let network = null;
+            let allNodesData = [];
+            let allEdgesData = [];
+            let nodesDataSet = null;
+            let edgesDataSet = null;
+            let isPhysicsEnabled = true;
+            let activeFilters = new Set();
+
+            // --- Vis.js Network Options ---
+            const networkOptions = {
+                nodes: {
+                    shape: 'dot',
+                    size: 18,
+                    font: {
+                        size: 13,
+                        color: '#374151', // gray-700
+                        face: 'Microsoft YaHei, sans-serif'
+                    },
+                    borderWidth: 2,
+                    borderWidthSelected: 3,
+                    shadow: { enabled: true, size: 8, x: 3, y: 3, color: 'rgba(0,0,0,0.15)' },
+                    shapeProperties: {
+                        interpolation: false
+                    },
+                    brokenImage: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%239ca3af'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z'/%3E%3C/svg%3E"
+                },
+                edges: {
+                    width: 1.2,
+                    selectionWidth: 2,
+                    hoverWidth: 1.8,
+                    font: {
+                        size: 10,
+                        color: '#4b5563', // gray-600
+                        align: 'middle',
+                        strokeWidth: 0,
+                        background: 'rgba(255, 255, 255, 0.75)'
+                    },
+                    arrows: {
+                        to: { enabled: true, scaleFactor: 0.7, type: 'arrow' },
+                        from: { enabled: false, scaleFactor: 0.7, type: 'arrow' }
+                    },
+                    color: {
+                        color: '#9ca3af', // gray-400
+                        highlight: '#4f46e5', // indigo-600
+                        hover: '#6366f1', // indigo-500
+                        inherit: false,
+                        opacity: 0.7
+                    },
+                    smooth: {
+                        enabled: true,
+                        type: "continuous",
+                        roundness: 0.2
+                    },
+                    dashes: false,
+                },
+                physics: {
+                    enabled: isPhysicsEnabled,
+                    solver: 'barnesHut',
+                    barnesHut: {
+                        gravitationalConstant: -30000,
+                        centralGravity: 0.1,
+                        springLength: 220,
+                        springConstant: 0.025,
+                        damping: 0.15,
+                        avoidOverlap: 0.5
+                    },
+                    stabilization: {
+                        enabled: true,
+                        iterations: STABILIZATION_ITERATIONS,
+                        updateInterval: 25,
+                        fit: true
+                    },
+                    timestep: 0.3
+                },
+                interaction: {
+                    hover: true,
+                    tooltipDelay: TOOLTIP_DELAY,
+                    navigationButtons: true,
+                    keyboard: { enabled: true },
+                    zoomView: true,
+                    dragView: true,
+                    dragNodes: true,
+                    selectConnectedEdges: false,
+                    hoverConnectedEdges: true,
+                    multiselect: false,
+                },
+                 groups: {
+                    Gryffindor:   { color: { background: '#ae0001', border: '#740001' }, font: { color: 'white' }, title: "格兰芬多" },
+                    Slytherin:    { color: { background: '#1a472a', border: '#2a623d' }, font: { color: 'white' }, title: "斯莱特林" },
+                    Hufflepuff:   { color: { background: '#ffdb00', border: '#eeb900' }, font: { color: '#424242' }, title: "赫奇帕奇" },
+                    Ravenclaw:    { color: { background: '#0e1a40', border: '#222f5b' }, font: { color: 'white' }, title: "拉文克劳" },
+                    Order:        { color: { background: '#ff7f50', border: '#cc6640' }, shape: 'diamond', font: { color: 'white' }, title: "凤凰社成员" },
+                    DeathEater:   { color: { background: '#4d4d4d', border: '#1a1a1a' }, shape: 'triangle', font: { color: 'white' }, title: "食死徒" },
+                    Ministry:     { color: { background: '#b0c4de', border: '#778899' }, shape: 'square', font: { color: '#333' }, title: "魔法部相关" },
+                    Weasley:      { color: { background: '#ff8c00', border: '#cc7000' }, font: { color: 'white' }, title: "韦斯莱家族" },
+                    Staff:        { color: { background: '#8a2be2', border: '#6a1db2' }, shape: 'hexagon', font: { color: 'white' }, title: "霍格沃茨教职工" },
+                    HouseElf:     { color: { background: '#f5f5dc', border: '#d2b48c' }, shape: 'ellipse', size: 12, font: { color: '#5c4033' }, title: "家养小精灵" },
+                    Creature:     { color: { background: '#2f4f4f', border: '#1d3333' }, shape: 'dot', size: 14, font: { color: 'white' }, title: "魔法生物" },
+                    Event:        { shape: 'box', color: { background: '#ffffff', border: '#666666' }, font: { color: '#333', size: 12, face: 'Microsoft YaHei Bold', multi:true, bold: true }, borderWidth: 1.5, margin: 12, title: "关键事件", labelHighlightBold: false },
+                    OtherStudent: { color: { background: '#add8e6', border: '#87ceeb' }, font: { color: '#333' }, title: "其他学生" },
+                    Other:        { color: { background: '#d3d3d3', border: '#a9a9a9' }, font: { color: '#333'}, title: "其他"}
+                },
+                layout: {
+                    randomSeed: 42
+                }
+            };
+
+            /** Generates placeholder image URL */
+            function getPlaceholderImageUrl(name, size = 64) {
+                if (!name) return networkOptions.nodes.brokenImage;
+                const initials = name.split(/[\s·]+/).map(n => n[0]).slice(0, 2).join('').toUpperCase(); // Handle space or ·
+                const bgColor = name.length % 2 === 0 ? '7F9CF5' : 'FBBF24';
+                const textColor = 'FFFFFF';
+                return `https://ui-avatars.com/api/?name=${initials}&size=${size}&background=${bgColor}&color=${textColor}&bold=true&format=svg`;
+            }
+
+            /** Loads and prepares data */
+            async function loadData() {
+                 // --- Node Data (NO COMMENTS) ---
+                 const nodesJson = `
+                 [
+                    {"id":"harry","label":"哈利·波特","group":"Gryffindor","image":"","title":"<strong>哈利·波特 (Harry Potter)</strong><br><em>救世之星, 大难不死的男孩</em><br>格兰芬多找球手, DA创始人<br>出生: 1980","description":"本作主角，额头有闪电疤痕，击败伏地魔。","born":"1980-07-31"},
+                    {"id":"ron","label":"罗恩·韦斯莱","group":"Weasley","image":"","title":"<strong>罗恩·韦斯莱 (Ron Weasley)</strong><br><em>哈利最好的朋友</em><br>格兰芬多守门员, 级长<br>出生: 1980","description":"韦斯莱家族第六子，忠诚勇敢，有时缺乏自信。","born":"1980-03-01"},
+                    {"id":"hermione","label":"赫敏·格兰杰","group":"Gryffindor","image":"","title":"<strong>赫敏·格兰杰 (Hermione Granger)</strong><br><em>年级最聪明的女巫</em><br>格兰芬多级长, DA创始人<br>出生: 1979","description":"麻瓜出身，极其聪明勤奋，三人组中的智囊。","born":"1979-09-19"},
+                    {"id":"dumbledore","label":"邓布利多","group":"Staff","image":"","shape":"star","size":28,"title":"<strong>阿不思·邓布利多 (Albus Dumbledore)</strong><br><em>霍格沃茨校长 (前)</em><br>最伟大的巫师之一<br>凤凰社创始人<br>逝世: 1997","description":"智慧、强大、仁慈但也背负秘密的校长，哈利的导师。","died":"1997"},
+                    {"id":"mcgonagall","label":"麦格教授","group":"Staff","image":"","title":"<strong>米勒娃·麦格 (Minerva McGonagall)</strong><br><em>变形术教授/副校长/校长</em><br>格兰芬多院长, 凤凰社成员","description":"严厉、公正、强大的女巫，阿尼马格斯（猫）。"},
+                    {"id":"ginny","label":"金妮·韦斯莱","group":"Weasley","image":"","title":"<strong>金妮·韦斯莱 (Ginny Weasley)</strong><br><em>哈利的妻子</em><br>格兰芬多追球手/找球手, DA成员<br>出生: 1981","description":"韦斯莱家长女，勇敢独立，后期成为哈利的女友和妻子。","born":"1981-08-11"},
+                    {"id":"neville","label":"纳威·隆巴顿","group":"Gryffindor","image":"","title":"<strong>纳威·隆巴顿 (Neville Longbottom)</strong><br><em>草药学教授 (后)</em><br>格兰芬多学生, DA核心成员<br>出生: 1980","description":"早期健忘笨拙，后期展现非凡勇气，摧毁最后一个魂器（纳吉尼）。","born":"1980-07-30"},
+                    {"id":"fred","label":"弗雷德·韦斯莱","group":"Weasley","image":"","title":"<strong>弗雷德·韦斯莱 (Fred Weasley)</strong><br><em>韦斯莱魔法把戏坊店主</em><br>格兰芬多击球手, 捣蛋专家<br>逝世: 1998","description":"乔治的双胞胎兄弟，充满活力和创造力的恶作剧天才。","born":"1978-04-01","died":"1998-05-02"},
+                    {"id":"george","label":"乔治·韦斯莱","group":"Weasley","image":"","title":"<strong>乔治·韦斯莱 (George Weasley)</strong><br><em>韦斯莱魔法把戏坊店主</em><br>格兰芬多击球手, 捣蛋专家<br>出生: 1978","description":"弗雷德的双胞胎兄弟，在弗雷德死后继续经营笑话店。","born":"1978-04-01"},
+                    {"id":"lupin","label":"莱姆斯·卢平","group":"Order","image":"","title":"<strong>莱姆斯·卢平 (Remus Lupin)</strong><br><em>黑魔法防御术教授 (前)</em><br>狼人, 掠夺者之一 (月亮脸)<br>凤凰社成员<br>逝世: 1998","description":"温和善良的狼人，詹姆·波特的好友，哈利的老师和朋友。","died":"1998-05-02"},
+                    {"id":"sirius","label":"小天狼星·布莱克","group":"Order","image":"","title":"<strong>小天狼星·布莱克 (Sirius Black)</strong><br><em>哈利的教父</em><br>阿尼马格斯 (狗), 掠夺者之一 (大脚板)<br>凤凰社成员<br>逝世: 1996","description":"出身于纯血黑巫师家族但反对家族理念，被误判入狱多年。","died":"1996"},
+                    {"id":"james","label":"詹姆·波特","group":"Gryffindor","hidden":true,"image":"","title":"<strong>詹姆·波特 (James Potter)</strong><br>哈利的父亲, 掠夺者之一 (尖头叉子)<br>逝世: 1981","description":"才华横溢但年轻时略显傲慢的巫师，为保护家人牺牲。","died":"1981-10-31"},
+                    {"id":"lily","label":"莉莉·波特","group":"Gryffindor","hidden":true,"image":"","title":"<strong>莉莉·波特 (Lily Potter)</strong><br>哈利的母亲 (née Evans)<br>才华横溢的女巫<br>逝世: 1981","description":"麻瓜出身，善良勇敢，其古老的保护魔法救了哈利。","died":"1981-10-31"},
+                    {"id":"hagrid","label":"鲁伯·海格","group":"Staff","image":"","title":"<strong>鲁伯·海格 (Rubeus Hagrid)</strong><br><em>钥匙管理员/保护神奇生物课教授</em><br>混血巨人, 凤凰社成员","description":"心地善良，热爱神奇生物，对哈利和邓布利多极为忠诚。"},
+                    {"id":"pettigrew","label":"小矮星彼得","group":"DeathEater","image":"","title":"<strong>小矮星彼得 (Peter Pettigrew)</strong><br><em>叛徒 (虫尾巴)</em><br>阿尼马格斯 (老鼠), 掠夺者之一<br>食死徒<br>逝世: 1998","description":"胆小懦弱，背叛波特夫妇投靠伏地魔。","died":"1998"},
+                    {"id":"snape","label":"西弗勒斯·斯内普","group":"Staff","image":"","title":"<strong>西弗勒斯·斯内普 (Severus Snape)</strong><br><em>魔药/黑魔法防御/校长</em><br>双面间谍, 凤凰社成员 (秘密)<br>食死徒 (表面)<br>逝世: 1998","description":"背景复杂，深爱莉莉·波特，一生在暗中保护哈利。","died":"1998-05-02"},
+                    {"id":"voldemort","label":"伏地魔","group":"DeathEater","image":"","color":{"background":"#dc2626","border":"#991b1b"},"size":30,"title":"<strong>伏地魔 (Lord Voldemort)</strong><br><em>黑魔王 (汤姆·里德尔)</em><br>斯莱特林继承人<br>出生: 1926<br>逝世: 1998","description":"极度追求力量和永生，制造了多个魂器，魔法界最危险的黑巫师。","born":"1926-12-31","died":"1998-05-02"},
+                    {"id":"malfoy_d","label":"德拉科·马尔福","group":"Slytherin","image":"","title":"<strong>德拉科·马尔福 (Draco Malfoy)</strong><br><em>哈利的同学/对手</em><br>斯莱特林找球手, 级长<br>出生: 1980","description":"出身纯血家族，早期傲慢欺凌，后期内心挣扎。","born":"1980-06-05"},
+                    {"id":"malfoy_l","label":"卢修斯·马尔福","group":"DeathEater","image":"","title":"<strong>卢修斯·马尔福 (Lucius Malfoy)</strong><br><em>食死徒, 校董 (前)</em><br>德拉科的父亲","description":"富有的纯血统至上者，影响力大但后期失势。"},
+                    {"id":"malfoy_n","label":"纳西莎·马尔福","group":"Slytherin","image":"","title":"<strong>纳西莎·马尔福 (Narcissa Malfoy)</strong><br><em>卢修斯的妻子 (née Black)</em><br>德拉科的母亲","description":"深爱儿子德拉科，最终为了儿子欺骗了伏地魔。"},
+                    {"id":"bellatrix","label":"贝拉特里克斯","group":"DeathEater","image":"","title":"<strong>贝拉特里克斯·莱斯特兰奇 (Bellatrix Lestrange)</strong><br><em>忠诚狂热的食死徒 (née Black)</em><br>伏地魔最信任的副手之一<br>逝世: 1998","description":"小天狼星和纳西莎的堂姐/表姐，残忍、疯狂、法力强大。","died":"1998-05-02"},
+                    {"id":"cedric","label":"塞德里克·迪戈里","group":"Hufflepuff","image":"","title":"<strong>塞德里克·迪戈里 (Cedric Diggory)</strong><br><em>三强争霸赛勇士</em><br>赫奇帕奇找球手, 级长<br>逝世: 1995","description":"霍格沃茨勇士之一，正直、善良、受欢迎。","died":"1995-06-24"},
+                    {"id":"tonks","label":"尼法朵拉·唐克斯","group":"Order","image":"","title":"<strong>尼法朵拉·唐克斯 (Nymphadora Tonks)</strong><br><em>傲罗, 凤凰社成员</em><br>易容马格斯 (Metamorphmagus)<br>卢平的妻子<br>逝世: 1998","description":"活泼、勇敢、能力出众的傲罗，不喜欢别人叫她“尼法朵拉”。","died":"1998-05-02"},
+                    {"id":"sprout","label":"斯普劳特教授","group":"Staff","image":"","title":"<strong>波莫娜·斯普劳特 (Pomona Sprout)</strong><br><em>草药学教授</em><br>赫奇帕奇院长","description":"和蔼可亲的草药学专家。"},
+                    {"id":"luna","label":"卢娜·洛夫古德","group":"Ravenclaw","image":"","title":"<strong>卢娜·洛夫古德 (Luna Lovegood)</strong><br><em>哈利的朋友</em><br>拉文克劳学生, DA核心成员<br>出生: 1981","description":"《唱唱反调》主编的女儿，性格古怪但思想开明、内心善良坚定。","born":"1981-02-13"},
+                    {"id":"cho","label":"秋·张","group":"Ravenclaw","image":"","title":"<strong>秋·张 (Cho Chang)</strong><br><em>哈利的初恋</em><br>拉文克劳找球手, DA成员<br>出生: 1979","description":"受欢迎的拉文克劳学生，塞德里克的前女友。"},
+                    {"id":"flitwick","label":"弗立维教授","group":"Staff","image":"","title":"<strong>菲利乌斯·弗立维 (Filius Flitwick)</strong><br><em>魔咒课教授</em><br>拉文克劳院长, 决斗冠军 (前)","description":"身材矮小但法力高强的魔咒大师。"},
+                    {"id":"fudge","label":"康奈利·福吉","group":"Ministry","image":"","title":"<strong>康奈利·福吉 (Cornelius Fudge)</strong><br><em>魔法部长 (前)</em>","description":"早期与邓布利多关系尚可，后因恐惧而否认伏地魔回归。"},
+                    {"id":"umbridge","label":"乌姆里奇","group":"Ministry","image":"","title":"<strong>多洛雷斯·乌姆里奇 (Dolores Umbridge)</strong><br><em>高级副部长/黑魔法防御术教授/校长 (短暂)</em><br>粉色控, 内心残忍","description":"代表魔法部干预霍格沃茨，使用酷刑，令人厌恶。"},
+                    {"id":"scrimgeour","label":"鲁弗斯·斯克林杰","group":"Ministry","image":"","title":"<strong>鲁弗斯·斯克林杰 (Rufus Scrimgeour)</strong><br><em>魔法部长 (福吉之后)</em><br>前傲罗办公室主任<br>逝世: 1997","description":"作风强硬，试图利用哈利，但最终英勇牺牲。","died":"1997-08-01"},
+                    {"id":"dobby","label":"多比","group":"HouseElf","image":"","size":14,"title":"<strong>多比 (Dobby)</strong><br><em>自由的小精灵</em><br>忠于哈利·波特<br>逝世: 1998","description":"原马尔福家的小精灵，被哈利解放后无比忠诚，为救哈利牺牲。","died":"1998"},
+                    {"id":"kreacher","label":"克利切","group":"HouseElf","image":"","size":14,"title":"<strong>克利切 (Kreacher)</strong><br><em>布莱克家族的小精灵</em><br>效忠哈利 (继承后)","description":"早期忠于纯血统理念和雷古勒斯，后在哈利善待下转变态度。"},
+                    {"id":"arthur","label":"亚瑟·韦斯莱","group":"Weasley","image":"","title":"<strong>亚瑟·韦斯莱 (Arthur Weasley)</strong><br><em>魔法部官员 (禁止滥用麻瓜物品司)</em><br>罗恩等人的父亲, 凤凰社成员","description":"对麻瓜物品充满好奇心，善良正直。"},
+                    {"id":"molly","label":"莫丽·韦斯莱","group":"Weasley","image":"","title":"<strong>莫丽·韦斯莱 (Molly Weasley)</strong><br><em>家庭主妇 (née Prewett)</em><br>罗恩等人的母亲, 凤凰社成员","description":"慈爱、强悍的女巫，将哈利视如己出。"},
+                    {"id":"bill","label":"比尔·韦斯莱","group":"Weasley","image":"","title":"<strong>比尔·韦斯莱 (Bill Weasley)</strong><br><em>古灵阁解咒员 (前)</em><br>韦斯莱家长子, 凤凰社成员","description":"勇敢稳重，后被狼人芬里尔·格雷伯克咬伤。"},
+                    {"id":"fleur","label":"芙蓉·德拉库尔","group":"OtherStudent","image":"","title":"<strong>芙蓉·德拉库尔 (Fleur Delacour)</strong><br><em>布斯巴顿勇士 (三强赛)</em><br>比尔·韦斯莱的妻子","description":"有媚娃血统，三强争霸赛布斯巴顿代表，后嫁给比尔。"},
+                    {"id":"moody","label":"疯眼汉穆迪","group":"Order","image":"","title":"<strong>阿拉斯托·穆迪 (Alastor 'Mad-Eye' Moody)</strong><br><em>传奇傲罗 (退休)</em><br>凤凰社核心成员<br>逝世: 1997","description":"身经百战，警惕性极高（“时刻保持警惕！”），有一只魔眼。","died":"1997"},
+                    {"id":"kingsley","label":"金斯莱·沙克尔","group":"Order","image":"","title":"<strong>金斯莱·沙克尔 (Kingsley Shacklebolt)</strong><br><em>傲罗, 凤凰社成员</em><br>魔法部长 (战后)","description":"能力出众，沉着冷静，深受信任。"},
+                    {"id":"rita","label":"丽塔·斯基特","group":"Other","image":"","title":"<strong>丽塔·斯基特 (Rita Skeeter)</strong><br><em>《预言家日报》记者</em><br>阿尼马格斯 (甲虫, 非法)","description":"为了新闻不择手段，常常歪曲事实。"},
+                    {"id":"lockhart","label":"洛哈特","group":"Staff","image":"","title":"<strong>吉德罗·洛哈特 (Gilderoy Lockhart)</strong><br><em>黑魔法防御术教授 (短暂)</em><br>作家, 骗子","description":"虚荣自恋，通过遗忘咒窃取他人功绩，最终咒语反弹失去记忆。"},
+                    {"id":"quirrell","label":"奇洛教授","group":"Staff","image":"","title":"<strong>奎里纳斯·奇洛 (Quirinus Quirrell)</strong><br><em>黑魔法防御术教授 (短暂)</em><br>伏地魔宿主<br>逝世: 1992","description":"被伏地魔附身，试图偷取魔法石。","died":"1992"},
+                    {"id":"trelawney","label":"特里劳妮教授","group":"Staff","image":"","title":"<strong>西比尔·特里劳妮 (Sybill Trelawney)</strong><br><em>占卜课教授</em>","description":"大部分时间像个神棍，但做出了两个关于伏地魔和哈利的关键预言。"},
+                    {"id":"filch","label":"费尔奇","group":"Staff","image":"","title":"<strong>阿格斯·费尔奇 (Argus Filch)</strong><br><em>霍格沃茨管理员</em><br>哑炮","description":"脾气暴躁，讨厌学生和恶作剧，深爱他的猫洛丽丝夫人。"},
+                    {"id":"hedwig","label":"海德薇","group":"Creature","image":"","shape":"circularImage","size": 16,"title":"<strong>海德薇 (Hedwig)</strong><br><em>哈利的雪鸮</em><br>逝世: 1997","description":"哈利忠实的伙伴和信使。","died":"1997"},
+                    {"id":"buckbeak","label":"巴克比克","group":"Creature","image":"","shape":"image","size": 20,"title":"<strong>巴克比克 (Buckbeak) / 蔫翼 (Witherwings)</strong><br><em>鹰头马身有翼兽</em>","description":"海格的宠物，后和小天狼星一起逃亡，再由哈利继承。"},
+
+                    {"id":"event_stone","label":"魔法石事件","group":"Event","title":"<strong>事件: 魔法石事件 (Sorcerer's Stone)</strong><br>第一学年 (1991-1992)<br>伏地魔试图夺取魔法石失败。","description":"哈利、罗恩、赫敏阻止奇洛（伏地魔）偷取魔法石。"},
+                    {"id":"event_chamber","label":"密室事件","group":"Event","title":"<strong>事件: 密室事件 (Chamber of Secrets)</strong><br>第二学年 (1992-1993)<br>哈利发现并摧毁里德尔的日记（魂器）。","description":"蛇怪被放出攻击学生，哈利进入密室战胜蛇怪，摧毁第一个魂器。"},
+                    {"id":"event_sirius_escape","label":"小天狼星越狱与真相","group":"Event","title":"<strong>事件: 小天狼星越狱与真相 (Prisoner of Azkaban)</strong><br>第三学年 (1993-1994)<br>小天狼星清白揭示，彼得逃脱。","description":"哈利等人发现小天狼星无辜，真凶是小矮星彼得。"},
+                    {"id":"event_triwizard","label":"三强争霸赛","group":"Event","title":"<strong>事件: 三强争霸赛 (Goblet of Fire)</strong><br>第四学年 (1994-1995)<br>伏地魔复活, 塞德里克牺牲。","description":"哈利被迫参赛，最终导致塞德里克死亡和伏地魔完全复活。"},
+                    {"id":"event_ministry_battle","label":"魔法部神秘事务司之战","group":"Event","title":"<strong>事件: 神秘事务司之战 (Order of the Phoenix)</strong><br>第五学年 (1995-1996)<br>小天狼星牺牲, 伏地魔现身。","description":"DA成员大战食死徒，小天狼星牺牲，魔法部承认伏地魔回归。"},
+                    {"id":"event_dumbledore_death","label":"邓布利多之死","group":"Event","title":"<strong>事件: 邓布利多之死 (Half-Blood Prince)</strong><br>第六学年 (1996-1997)<br>斯内普按计划杀死邓布利多。","description":"揭示魂器秘密，斯内普杀死邓布利多，食死徒入侵霍格沃茨。"},
+                    {"id":"event_seven_potters","label":"七个波特行动","group":"Event","title":"<strong>事件: 七个波特行动 (Deathly Hallows)</strong><br>1997年夏<br>穆迪牺牲, 乔治受伤。","description":"凤凰社转移哈利途中遭食死徒伏击。"},
+                    {"id":"event_battle_of_hogwarts","label":"霍格沃茨之战","group":"Event","title":"<strong>事件: 霍格沃茨之战 (Deathly Hallows)</strong><br>1998年5月2日<br>最终决战, 伏地魔败亡。","description":"正义力量对抗伏地魔及其追随者的最终战役，多人牺牲，哈利最终获胜。"}
+                ]
+                 `;
+                 // --- Edge Data (NO COMMENTS) ---
+                 const edgesJson = `
+                 [
+                    {"from":"harry","to":"ron","label":"挚友","arrows":"to, from", "length": 150},
+                    {"from":"harry","to":"hermione","label":"挚友","arrows":"to, from", "length": 150},
+                    {"from":"ron","to":"hermione","label":"挚友 → 夫妻","arrows":"to, from","color":{"color":"#db2777"}, "length": 150},
+                    {"from":"ron","to":"ginny","label":"兄妹","arrows":"to, from","color":{"color":"#f97316"}},
+                    {"from":"ron","to":"fred","label":"兄弟","arrows":"to, from","color":{"color":"#f97316"}},
+                    {"from":"ron","to":"george","label":"兄弟","arrows":"to, from","color":{"color":"#f97316"}},
+                    {"from":"ron","to":"bill","label":"兄弟","arrows":"to, from","color":{"color":"#f97316"}},
+                    {"from":"ron","to":"arthur","label":"父子","arrows":"from","color":{"color":"#f97316"}},
+                    {"from":"ron","to":"molly","label":"母子","arrows":"from","color":{"color":"#f97316"}},
+                    {"from":"arthur","to":"molly","label":"夫妻","arrows":"to, from","color":{"color":"#f97316"}},
+                    {"from":"arthur","to":"harry","label":"视如己出","arrows":"from","color":{"color":"#f97316"}, "dashes": [2,2]},
+                    {"from":"molly","to":"harry","label":"视如己出","arrows":"from","color":{"color":"#f97316"}, "dashes": [2,2], "width": 1.5},
+                    {"from":"molly","to":"bellatrix","label":"杀死","arrows":"to","color":"red", "width": 2},
+                    {"from":"fred","to":"george","label":"双胞胎","arrows":"to, from","color":{"color":"#f97316"}, "width": 1.5},
+                    {"from":"harry","to":"ginny","label":"朋友 → 夫妻","arrows":"to, from","color":{"color":"#db2777"}, "length": 160},
+                    {"from":"james","to":"harry","label":"父子","arrows":"from","color":{"color":"gray"},"hidden":true},
+                    {"from":"lily","to":"harry","label":"母子","arrows":"from","color":{"color":"gray"},"hidden":true},
+                    {"from":"james","to":"lily","label":"夫妻","arrows":"to, from","color":{"color":"gray"},"hidden":true},
+                    {"from":"james","to":"sirius","label":"挚友 (掠夺者)","arrows":"to, from","hidden":true},
+                    {"from":"james","to":"lupin","label":"挚友 (掠夺者)","arrows":"to, from","hidden":true},
+                    {"from":"james","to":"pettigrew","label":"朋友 → 背叛","arrows":"to, from","hidden":true},
+                    {"from":"lily","to":"snape","label":"童年好友 → 疏远","arrows":"to, from","hidden":true},
+                    {"from":"sirius","to":"harry","label":"教父 & 监护人","arrows":"to","color":{"color":"#0ea5e9"}, "width": 1.5},
+                    {"from":"sirius","to":"lupin","label":"挚友 (掠夺者)","arrows":"to, from"},
+                    {"from":"sirius","to":"pettigrew","label":"前挚友 → 仇人","arrows":"to, from","color":"#ef4444","dashes":true},
+                    {"from":"sirius","to":"kreacher","label":"主人 (憎恶)","arrows":"from","color":"gray","dashes":true},
+                    {"from":"sirius","to":"bellatrix","label":"堂姐弟 (敌对)","arrows":"to, from","color":"#ef4444","dashes":true},
+                    {"from":"sirius","to":"malfoy_n","label":"堂姐弟","arrows":"to, from","color":"gray","dashes":[2,2]},
+                    {"from":"malfoy_l","to":"malfoy_d","label":"父子","arrows":"from","color":{"color":"#6b7280"}},
+                    {"from":"malfoy_l","to":"malfoy_n","label":"夫妻","arrows":"to, from","color":{"color":"#6b7280"}},
+                    {"from":"malfoy_n","to":"malfoy_d","label":"母子","arrows":"from","color":{"color":"#6b7280"}},
+                    {"from":"malfoy_n","to":"bellatrix","label":"姐妹","arrows":"to, from","color":{"color":"#6b7280"}},
+                    {"from":"malfoy_n","to":"harry","label":"保护 (为子)","arrows":"to","color":"green","dashes":true},
+                    {"from":"lupin","to":"tonks","label":"夫妻","arrows":"to, from","color":{"color":"#db2777"}},
+                    {"from":"lupin","to":"harry","label":"导师/朋友 (前教授)","arrows":"to","color":{"color":"#16a34a"}},
+                    {"from":"lupin","to":"pettigrew","label":"前朋友 (掠夺者)","arrows":"to, from","color":"#a1a1aa","dashes":true},
+                    {"from":"bellatrix","to":"voldemort","label":"狂热追随者","arrows":"to","color":"#991b1b","width":2},
+                    {"from":"bellatrix","to":"malfoy_l","label":"姻亲 (姐夫)","arrows":"to, from","color":"gray"},
+                    {"from":"bellatrix","to":"malfoy_n","label":"姐妹","arrows":"to, from","color":"gray"},
+                    {"from":"bellatrix","to":"sirius","label":"杀害","arrows":"to","color":"red","width":2},
+                    {"from":"bellatrix","to":"dobby","label":"杀害","arrows":"to","color":"red","width":2},
+                    {"from":"bellatrix","to":"tonks","label":"杀害","arrows":"to","color":"red", "width": 1.5},
+                    {"from":"dumbledore","to":"harry","label":"导师 & 保护者","arrows":"to","color":{"color":"#16a34a"}, "width": 2},
+                    {"from":"dumbledore","to":"mcgonagall","label":"校长/副校长 (信任)","arrows":"to, from","color":{"color":"#16a34a"}},
+                    {"from":"dumbledore","to":"snape","label":"信任 (双面间谍)","arrows":"to, from","color":{"color":"#a1a1aa"}, "dashes": [5,5,2,2]},
+                    {"from":"dumbledore","to":"hagrid","label":"信任 & 委派","arrows":"to, from","color":{"color":"#16a34a"}},
+                    {"from":"dumbledore","to":"voldemort","label":"主要对抗者","arrows":"to, from","color":{"color":"#dc2626"},"dashes":true,"width":2.5},
+                    {"from":"dumbledore","to":"fudge","label":"政见不合 → 对立","arrows":"to, from","color":{"color":"#a1a1aa"},"dashes":true},
+                    {"from":"dumbledore","to":"scrimgeour","label":"政见不合","arrows":"to, from","color":{"color":"#a1a1aa"},"dashes":[3,3]},
+                    {"from":"dumbledore","to":"umbridge","label":"强烈对立","arrows":"to, from","color":{"color":"#f472b6"},"dashes":true,"width":1.5},
+                    {"from":"mcgonagall","to":"harry","label":"院长/教授 (支持)","arrows":"to","color":{"color":"#16a34a"}},
+                    {"from":"mcgonagall","to":"umbridge","label":"鄙视 & 对抗","arrows":"to, from","color":{"color":"#f472b6"},"dashes":true},
+                    {"from":"snape","to":"harry","label":"教授 → 保护者 (复杂)","arrows":"to","color":{"color":"#a1a1aa"},"dashes":[5,2],"width":1.5},
+                    {"from":"snape","to":"voldemort","label":"效忠 (伪装) → 背叛","arrows":"to, from","color":{"color":"#333333"},"dashes":[5,5,3,3],"width":1.5},
+                    {"from":"snape","to":"dumbledore","label":"效忠 & 执行计划","arrows":"from","color":{"color":"#16a34a"}, "dashes": [5,5,2,2]},
+                    {"from":"snape","to":"malfoy_d","label":"教父 (名义) & 教授","arrows":"to","color":"gray"},
+                    {"from":"snape","to":"lily","label":"深爱 (单向)","arrows":"to","color":"#db2777","dashes":true, "hidden": true},
+                    {"from":"snape","to":"james","label":"憎恨 (情敌/欺凌)","arrows":"to, from","color":"red","dashes":true, "hidden": true},
+                    {"from":"hagrid","to":"harry","label":"引导者 & 朋友","arrows":"to","color":{"color":"#15803d"}},
+                    {"from":"hagrid","to":"dumbledore","label":"绝对忠诚","arrows":"to","color":{"color":"#15803d"}},
+                    {"from":"hagrid","to":"buckbeak","label":"主人/照顾者","arrows":"from","color":"brown"},
+                    {"from":"sprout","to":"neville","label":"教授 (赏识)","arrows":"to","color":{"color":"#16a34a"}},
+                    {"from":"flitwick","to":"harry","label":"教授 (魔咒)","arrows":"to","color":{"color":"#16a34a"}},
+                    {"from":"harry","to":"neville","label":"朋友/DA战友","arrows":"to, from"},
+                    {"from":"harry","to":"luna","label":"朋友/DA战友","arrows":"to, from"},
+                    {"from":"harry","to":"cho","label":"初恋 → 分手","arrows":"to, from","color":"#a1a1aa","dashes":[4,4]},
+                    {"from":"harry","to":"cedric","label":"竞争者 → 朋友","arrows":"to, from"},
+                    {"from":"harry","to":"malfoy_d","label":"校园死对头","arrows":"to, from","color":{"color":"#b91c1c"},"dashes":true, "width": 1.5},
+                    {"from":"harry","to":"umbridge","label":"憎恨 & 对抗","arrows":"to, from","color":{"color":"#f472b6"},"dashes":true,"width":2},
+                    {"from":"harry","to":"voldemort","label":"宿敌 (魂器连接)","arrows":"to, from","color":{"color":"#dc2626"},"dashes":[8,4],"width":3, "length": 250},
+                    {"from":"harry","to":"dobby","label":"解放者 & 挚友","arrows":"to","color":"#3b82f6"},
+                    {"from":"harry","to":"kreacher","label":"继承主人 → 和解","arrows":"from","color":"#3b82f6","dashes":[3,3]},
+                    {"from":"harry","to":"hedwig","label":"主人 & 伙伴","arrows":"from","color":"#60a5fa"},
+                    {"from":"harry","to":"scrimgeour","label":"不信任 & 利用","arrows":"to, from","color":"gray","dashes":true},
+                    {"from":"harry","to":"lockhart","label":"厌恶 (揭穿)","arrows":"to","color":"#facc15","dashes":true},
+                    {"from":"harry","to":"quirrell","label":"对抗 (魔法石)","arrows":"to, from","color":"red","dashes":true},
+                    {"from":"voldemort","to":"pettigrew","label":"主人 → 仆从 (利用)","arrows":"from","color":{"color":"#b91c1c"}},
+                    {"from":"voldemort","to":"malfoy_l","label":"主人 → 仆从 (惩罚)","arrows":"from","color":{"color":"#b91c1c"}},
+                    {"from":"voldemort","to":"snape","label":"信任 (误) → 杀害","arrows":"to, from","color":"red","dashes":true},
+                    {"from":"voldemort","to":"quirrell","label":"附身利用","arrows":"to","color":"#b91c1c","width":1.5},
+                    {"from":"voldemort","to":"harry","label":"试图杀害 (多次)","arrows":"to","color":"red","width":2},
+                    {"from":"voldemort","to":"james","label":"杀害","arrows":"to","color":"red","hidden":true},
+                    {"from":"voldemort","to":"lily","label":"杀害","arrows":"to","color":"red","hidden":true},
+                    {"from":"pettigrew","to":"cedric","label":"杀害 (奉伏地魔命)","arrows":"to","color":"red","dashes":true},
+                    {"from":"malfoy_l","to":"dobby","label":"前主人 (虐待)","arrows":"from","color":"gray","dashes":true},
+                    {"from":"bill","to":"fleur","label":"夫妻","arrows":"to, from","color":{"color":"#db2777"}},
+                    {"from":"moody","to":"harry","label":"保护者 (凤凰社)","arrows":"to","color":"#15803d"},
+                    {"from":"kingsley","to":"harry","label":"保护者 (凤凰社/魔法部)","arrows":"to","color":"#15803d"},
+                    {"from":"rita","to":"harry","label":"纠缠报道","arrows":"to, from","color":"#eab308","dashes":true},
+                    {"from":"filch","to":"harry","label":"管理员 (敌视)","arrows":"to, from","color":"#a1a1aa","dashes":[2,2]},
+                    {"from":"event_stone","to":"harry","label":"主角","arrows":"from","color":"blue"},
+                    {"from":"event_stone","to":"ron","label":"参与者","arrows":"from","color":"blue"},
+                    {"from":"event_stone","to":"hermione","label":"参与者","arrows":"from","color":"blue"},
+                    {"from":"event_stone","to":"quirrell","label":"反派","arrows":"from","color":"red"},
+                    {"from":"event_stone","to":"dumbledore","label":"幕后","arrows":"from","color":"green"},
+                    {"from":"event_chamber","to":"harry","label":"主角","arrows":"from","color":"blue"},
+                    {"from":"event_chamber","to":"ron","label":"参与者","arrows":"from","color":"blue"},
+                    {"from":"event_chamber","to":"hermione","label":"受害者/关键信息","arrows":"from","color":"blue"},
+                    {"from":"event_chamber","to":"ginny","label":"被控制者","arrows":"from","color":"red"},
+                    {"from":"event_chamber","to":"voldemort","label":"幕后 (日记)","arrows":"from","color":"red"},
+                    {"from":"event_chamber","to":"lockhart","label":"相关人物 (无用)","arrows":"from","color":"orange"},
+                    {"from":"event_sirius_escape","to":"harry","label":"关键人物","arrows":"from","color":"blue"},
+                    {"from":"event_sirius_escape","to":"sirius","label":"核心人物","arrows":"from","color":"#0ea5e9"},
+                    {"from":"event_sirius_escape","to":"lupin","label":"关键人物","arrows":"from","color":"green"},
+                    {"from":"event_sirius_escape","to":"pettigrew","label":"真凶","arrows":"from","color":"red"},
+                    {"from":"event_triwizard","to":"harry","label":"勇士 (被迫)","arrows":"from","color":"blue"},
+                    {"from":"event_triwizard","to":"cedric","label":"勇士 (牺牲)","arrows":"from","color":"purple"},
+                    {"from":"event_triwizard","to":"fleur","label":"勇士","arrows":"from","color":"purple"},
+                    {"from":"event_triwizard","to":"voldemort","label":"复活于","arrows":"from","color":"red"},
+                    {"from":"event_triwizard","to":"pettigrew","label":"协助复活","arrows":"from","color":"darkred"},
+                    {"from":"event_triwizard","to":"moody","label":"被冒充","arrows":"from","color":"orange"},
+                    {"from":"event_ministry_battle","to":"harry","label":"领导者 (DA)","arrows":"from","color":"blue"},
+                    {"from":"event_ministry_battle","to":"ron","label":"参与者 (DA)","arrows":"from","color":"blue"},
+                    {"from":"event_ministry_battle","to":"hermione","label":"参与者 (DA)","arrows":"from","color":"blue"},
+                    {"from":"event_ministry_battle","to":"ginny","label":"参与者 (DA)","arrows":"from","color":"blue"},
+                    {"from":"event_ministry_battle","to":"neville","label":"参与者 (DA)","arrows":"from","color":"blue"},
+                    {"from":"event_ministry_battle","to":"luna","label":"参与者 (DA)","arrows":"from","color":"blue"},
+                    {"from":"event_ministry_battle","to":"sirius","label":"牺牲于","arrows":"from","color":"red","dashes":true},
+                    {"from":"event_ministry_battle","to":"lupin","label":"参与者 (凤凰社)","arrows":"from","color":"orange"},
+                    {"from":"event_ministry_battle","to":"tonks","label":"参与者 (凤凰社)","arrows":"from","color":"orange"},
+                    {"from":"event_ministry_battle","to":"moody","label":"参与者 (凤凰社)","arrows":"from","color":"orange"},
+                    {"from":"event_ministry_battle","to":"kingsley","label":"参与者 (凤凰社)","arrows":"from","color":"orange"},
+                    {"from":"event_ministry_battle","to":"bellatrix","label":"参与者 (食死徒)","arrows":"from","color":"darkred"},
+                    {"from":"event_ministry_battle","to":"malfoy_l","label":"参与者 (食死徒)","arrows":"from","color":"darkred"},
+                    {"from":"event_ministry_battle","to":"dumbledore","label":"救援","arrows":"from","color":"green"},
+                    {"from":"event_dumbledore_death","to":"dumbledore","label":"牺牲者","arrows":"from","color":"black"},
+                    {"from":"event_dumbledore_death","to":"snape","label":"执行者 (按计划)","arrows":"from","color":"black"},
+                    {"from":"event_dumbledore_death","to":"malfoy_d","label":"被迫参与者","arrows":"from","color":"gray","dashes":true},
+                    {"from":"event_dumbledore_death","to":"harry","label":"见证者","arrows":"from","color":"blue"},
+                    {"from":"event_seven_potters","to":"harry","label":"保护对象","arrows":"from","color":"blue"},
+                    {"from":"event_seven_potters","to":"moody","label":"牺牲者","arrows":"from","color":"red","dashes":true},
+                    {"from":"event_seven_potters","to":"george","label":"受伤者","arrows":"from","color":"orange","dashes":true},
+                    {"from":"event_seven_potters","to":"hedwig","label":"牺牲者","arrows":"from","color":"red","dashes":true},
+                    {"from":"event_battle_of_hogwarts","to":"harry","label":"核心主角","arrows":"from","color":"blue","width":2},
+                    {"from":"event_battle_of_hogwarts","to":"voldemort","label":"核心反派","arrows":"from","color":"red","width":2},
+                    {"from":"event_battle_of_hogwarts","to":"ron","label":"参与者","arrows":"from","color":"blue"},
+                    {"from":"event_battle_of_hogwarts","to":"hermione","label":"参与者","arrows":"from","color":"blue"},
+                    {"from":"event_battle_of_hogwarts","to":"neville","label":"关键角色 (斩蛇)","arrows":"from","color":"blue","width":1.5},
+                    {"from":"event_battle_of_hogwarts","to":"mcgonagall","label":"指挥者 (霍格沃茨方)","arrows":"from","color":"green","width":1.5},
+                    {"from":"event_battle_of_hogwarts","to":"fred","label":"牺牲者","arrows":"from","color":"red","dashes":true},
+                    {"from":"event_battle_of_hogwarts","to":"lupin","label":"牺牲者","arrows":"from","color":"red","dashes":true},
+                    {"from":"event_battle_of_hogwarts","to":"tonks","label":"牺牲者","arrows":"from","color":"red","dashes":true},
+                    {"from":"event_battle_of_hogwarts","to":"snape","label":"牺牲者","arrows":"from","color":"red","dashes":true},
+                    {"from":"event_battle_of_hogwarts","to":"bellatrix","label":"牺牲者 (食死徒)","arrows":"from","color":"red","dashes":true},
+                    {"from":"event_battle_of_hogwarts","to":"molly","label":"关键角色 (杀贝拉)","arrows":"from","color":"orange","width":1.5}
+                ]
+                 `;
+
+                try {
+                    allNodesData = JSON.parse(nodesJson);
+                    allEdgesData = JSON.parse(edgesJson);
+
+                    let edgeIdCounter = 0;
+                    allNodesData.forEach(node => {
+                        if (!node.image && node.group !== 'Event' && node.group !== 'Creature') {
+                            node.image = getPlaceholderImageUrl(node.label);
+                            node.shape = 'circularImage';
+                        } else if (node.image && !node.shape) {
+                            node.shape = 'image';
+                        }
+                        // Ensure all nodes have an id
+                        if (node.id === undefined) {
+                             console.warn("Node missing id:", node);
+                             node.id = `node_${Math.random().toString(16).slice(2)}`; // Assign random id if missing
+                        }
+                    });
+                    allEdgesData.forEach(edge => {
+                        if (edge.id === undefined) {
+                            edge.id = `edge_${edgeIdCounter++}`;
+                        }
+                         // Ensure edges link valid nodes
+                        if (!allNodesData.find(n => n.id === edge.from) || !allNodesData.find(n => n.id === edge.to)) {
+                            console.warn(`Edge ${edge.id || '(no id)'} links non-existent node(s): from=${edge.from}, to=${edge.to}`);
+                        }
+                    });
+
+                    nodesDataSet = new vis.DataSet(allNodesData);
+                    edgesDataSet = new vis.DataSet(allEdgesData);
+
+                    console.log(`Loaded ${allNodesData.length} nodes and ${allEdgesData.length} edges.`);
+                    return { nodes: nodesDataSet, edges: edgesDataSet };
+                } catch (error) {
+                    console.error("Error parsing JSON data:", error);
+                    showLoadingMessage(`数据解析失败: ${error.message}`, true);
+                    throw error;
+                }
+            }
+
+            /** Creates the Vis.js network instance */
+            function createNetwork(data) {
+                if (!networkContainer || !data || !data.nodes || !data.edges) {
+                    console.error("Cannot create network: Missing container or data.");
+                    return null;
+                }
+                console.log("Creating Vis Network...");
+                network = new vis.Network(networkContainer, data, networkOptions);
+                console.log("Vis Network created.");
+                return network;
+            }
+
+            /** Populates filter controls and legend */
+            function setupUI() {
+                const groups = new Map();
+                allNodesData.forEach(node => {
+                    if (node.group && !groups.has(node.group)) {
+                         // Use group definition from options if exists, otherwise create a default gray one
+                        const groupInfo = networkOptions.groups[node.group] || { color: { background: '#cccccc', border: '#aaaaaa'}, title: node.group };
+                        groups.set(node.group, groupInfo);
+                    } else if (!node.group && !groups.has('Other')) { // Add 'Other' group if ungrouped nodes exist
+                        groups.set('Other', networkOptions.groups['Other'] || { color: { background: '#d3d3d3', border: '#a9a9a9'}, title: '其他'});
+                    }
+                });
+
+                filterControls.innerHTML = '';
+                activeFilters.clear();
+                const sortedGroups = Array.from(groups.keys()).sort();
+
+                sortedGroups.forEach(group => {
+                    const groupInfo = groups.get(group);
+                    const colorInfo = groupInfo.color || { background: '#ccc', border: '#aaa' }; // Fallback color
+                    const label = document.createElement('label');
+                    label.className = 'filter-badge selected';
+                    label.style.backgroundColor = colorInfo.background;
+                    label.style.color = groupInfo.font?.color || (isColorDark(colorInfo.background) ? 'white' : 'black');
+                    label.style.borderColor = colorInfo.border;
+                    label.title = `点击切换 ${groupInfo.title || group} 分组`;
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.value = group;
+                    checkbox.checked = true;
+                    checkbox.id = `filter-${group}`;
+
+                    const swatch = document.createElement('span');
+                    swatch.className = 'color-swatch';
+                    swatch.style.backgroundColor = colorInfo.background;
+                    swatch.style.borderColor = colorInfo.border || colorInfo.background;
+
+                    label.appendChild(checkbox);
+                    label.appendChild(swatch);
+                    label.appendChild(document.createTextNode(groupInfo.title || group));
+                    filterControls.appendChild(label);
+
+                    activeFilters.add(group);
+
+                    label.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        checkbox.checked = !checkbox.checked;
+                        label.classList.toggle('selected', checkbox.checked);
+                        if (checkbox.checked) {
+                            activeFilters.add(group);
+                        } else {
+                            activeFilters.delete(group);
+                        }
+                        applyFiltersAndSearch();
+                        updateLegend();
+                    });
+                });
+
+                filterSelectAll.addEventListener('click', () => {
+                    filterControls.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+                    filterControls.querySelectorAll('.filter-badge').forEach(b => b.classList.add('selected'));
+                    activeFilters = new Set(sortedGroups);
+                    applyFiltersAndSearch();
+                    updateLegend();
+                });
+
+                filterSelectNone.addEventListener('click', () => {
+                     filterControls.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                     filterControls.querySelectorAll('.filter-badge').forEach(b => b.classList.remove('selected'));
+                     activeFilters.clear();
+                     applyFiltersAndSearch();
+                     updateLegend();
+                });
+
+                updateLegend();
+                physicsToggle.checked = isPhysicsEnabled;
+            }
+
+            /** Updates the legend */
+            function updateLegend() {
+                legendItemsContainer.innerHTML = '';
+                let legendCount = 0;
+                const sortedActiveFilters = Array.from(activeFilters).sort(); // Sort legend items
+
+                sortedActiveFilters.forEach(group => {
+                    const groupInfo = networkOptions.groups[group] || networkOptions.groups['Other']; // Use 'Other' as fallback visually
+                    if (groupInfo) {
+                        legendCount++;
+                        const item = document.createElement('div');
+                        item.className = 'legend-item';
+                        const swatch = document.createElement('span');
+                        swatch.className = 'legend-swatch';
+                        const bgColor = groupInfo.color?.background || '#ccc';
+                        const borderColor = groupInfo.color?.border || '#aaa';
+                        swatch.style.backgroundColor = bgColor;
+                        swatch.style.borderColor = borderColor;
+
+                        // Apply shape styles to swatch
+                        if (groupInfo.shape === 'diamond') { swatch.style.borderRadius = '0'; swatch.style.transform = 'rotate(45deg)'; swatch.style.width='10px'; swatch.style.height='10px'; }
+                        else if (groupInfo.shape === 'triangle') { swatch.style = 'width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-bottom: 10px solid ' + bgColor + '; background-color:transparent; border-color:transparent; border-bottom-color:' + bgColor + '; margin-right: 6px;'; }
+                        else if (groupInfo.shape === 'star') { swatch.innerHTML = '★'; swatch.style = `color:${bgColor}; background-color:transparent; border:none; font-size:16px; line-height:10px; margin-right: 6px; width: 12px; text-align: center;`; }
+                        else if (groupInfo.shape === 'box' || groupInfo.shape === 'square') { swatch.style.borderRadius = '2px'; }
+                        else { swatch.style.borderRadius = '50%'; } // Default circle
+
+                        item.appendChild(swatch);
+                        item.appendChild(document.createTextNode(groupInfo.title || group));
+                        legendItemsContainer.appendChild(item);
+                    }
+                });
+
+                if (legendCount === 0) {
+                    legendItemsContainer.innerHTML = '<p class="text-xs text-gray-500 italic">没有选择任何分组。</p>';
+                }
+            }
+
+            /** Helper to check color darkness */
+            function isColorDark(hexColor) {
+                if (!hexColor || typeof hexColor !== 'string' || !hexColor.startsWith('#')) return false;
+                const color = hexColor.length === 4 ? hexColor.substring(1).split('').map(c=>c+c).join('') : hexColor.substring(1); // Handle #rgb
+                if (color.length !== 6) return false;
+                const rgb = parseInt(color, 16);
+                const r = (rgb >> 16) & 0xff;
+                const g = (rgb >> 8) & 0xff;
+                const b = (rgb >> 0) & 0xff;
+                const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+                return luma < 128;
+            }
+
+            /** Resets visual styles */
+            function resetVisualStyles() {
+                if (!nodesDataSet || !edgesDataSet || !network) return;
+                const defaultNodeOpacity = 1.0;
+                const defaultEdgeOpacity = networkOptions.edges.color.opacity || 0.7;
+                const nodeUpdates = nodesDataSet.map(node => {
+                    const update = { id: node.id, opacity: defaultNodeOpacity, size: node.originalSize || undefined, borderWidth: node.originalBorderWidth || undefined };
+                    delete node.originalSize; delete node.originalBorderWidth; return update;
+                });
+                const edgeUpdates = edgesDataSet.map(edge => ({ id: edge.id, opacity: defaultEdgeOpacity, width: edge.originalWidth || undefined }));
+                edgesDataSet.forEach(e => delete e.originalWidth);
+                if (nodeUpdates.length > 0) nodesDataSet.update(nodeUpdates);
+                if (edgeUpdates.length > 0) edgesDataSet.update(edgeUpdates);
+            }
+
+            /** Applies highlighting */
+            function applyHighlight(selectedNodeId = null, selectedEdgeId = null, searchMatches = null) {
+                 resetVisualStyles();
+                 applyFilters(); // Apply base visibility first
+
+                 if (!selectedNodeId && !selectedEdgeId && !(searchMatches && searchMatches.size > 0)) return;
+
+                 const nodeUpdates = [];
+                 const edgeUpdates = [];
+                 let highlightedNodeIds = new Set();
+
+                 if (selectedNodeId) {
+                    const node = nodesDataSet.get(selectedNodeId);
+                    if (!node || node.hidden) return;
+                    highlightedNodeIds.add(selectedNodeId);
+                    network.getConnectedEdges(selectedNodeId).forEach(edgeId => {
+                        const edge = edgesDataSet.get(edgeId); if (!edge || edge.hidden) return;
+                        const neighborId = edge.from === selectedNodeId ? edge.to : edge.from;
+                        const neighborNode = nodesDataSet.get(neighborId);
+                        if (neighborNode && !neighborNode.hidden) highlightedNodeIds.add(neighborId);
+                    });
+                 } else if (selectedEdgeId) {
+                    const edge = edgesDataSet.get(selectedEdgeId); if (!edge || edge.hidden) return;
+                    const fromNode = nodesDataSet.get(edge.from); const toNode = nodesDataSet.get(edge.to);
+                    if(fromNode && !fromNode.hidden) highlightedNodeIds.add(edge.from);
+                    if(toNode && !toNode.hidden) highlightedNodeIds.add(edge.to);
+                 } else if (searchMatches) {
+                     highlightedNodeIds = searchMatches;
+                 }
+
+                 nodesDataSet.forEach(node => {
+                     if (node.hidden) return;
+                     const isHighlighted = highlightedNodeIds.has(node.id);
+                     let update = { id: node.id, opacity: isHighlighted ? HIGHLIGHT_OPACITY_NODE : DIM_OPACITY_NODE };
+                     if (isHighlighted && node.id === selectedNodeId) {
+                         node.originalSize = node.size; update.size = (node.size || networkOptions.nodes.size) * 1.2;
+                         node.originalBorderWidth = node.borderWidth; update.borderWidth = (node.borderWidth || networkOptions.nodes.borderWidth) * 1.5;
+                     }
+                     nodeUpdates.push(update);
+                 });
+
+                 edgesDataSet.forEach(edge => {
+                     if (edge.hidden) return;
+                     const fromHighlighted = highlightedNodeIds.has(edge.from);
+                     const toHighlighted = highlightedNodeIds.has(edge.to);
+                     let isHighlighted = (selectedEdgeId === edge.id) || (fromHighlighted && toHighlighted);
+                     let update = { id: edge.id, opacity: isHighlighted ? HIGHLIGHT_OPACITY_EDGE : DIM_OPACITY_EDGE };
+                      if (isHighlighted) {
+                          edge.originalWidth = edge.width;
+                          update.width = (edge.width || networkOptions.edges.width) * 1.8;
+                      }
+                     edgeUpdates.push(update);
+                 });
+
+                 if (nodeUpdates.length > 0) nodesDataSet.update(nodeUpdates);
+                 if (edgeUpdates.length > 0) edgesDataSet.update(edgeUpdates);
+
+                 if (highlightedNodeIds.size > 0 && highlightedNodeIds.size < 15) { // Avoid excessive zoom on large searches
+                     network.fit({ nodes: Array.from(highlightedNodeIds), animation: { duration: FIT_ANIMATION_DURATION, easingFunction: 'easeInOutCubic' } });
+                 }
+            }
+
+            /** Updates side info panel */
+            function updateInfoPanel(nodeId = null, edgeId = null) {
+                 infoContent.innerHTML = '';
+                 if (nodeId) {
+                     const node = nodesDataSet.get(nodeId); if (!node || node.hidden) { infoTitle.textContent = '信息'; infoContent.innerHTML = '<p class="text-gray-500">无法显示隐藏节点的信息。</p>'; return; }
+                     infoTitle.textContent = node.label || '节点信息';
+                     let contentHtml = '<div class="flex items-start">';
+                     contentHtml += `<div class="info-image-placeholder" style="${node.image ? '' : 'background-color: #eee;'}">`;
+                     if (node.image) contentHtml += `<img src="${node.image}" alt="${node.label}" class="w-full h-full object-cover rounded-full" onerror="this.src='${networkOptions.nodes.brokenImage}'; this.onerror=null;">`; else contentHtml += node.label ? node.label.substring(0, 1) : '?';
+                     contentHtml += '</div>';
+                     contentHtml += '<div class="flex-grow">';
+                     contentHtml += `<p><strong class="font-semibold text-gray-700">名称:</strong> ${node.label}</p>`;
+                     if (node.group) { const groupInfo = networkOptions.groups[node.group] || networkOptions.groups['Other']; const groupName = groupInfo?.title || node.group; const groupColor = groupInfo?.color?.background || '#ccc'; contentHtml += `<p><strong class="font-semibold text-gray-700">分组:</strong> <span class="inline-block w-2.5 h-2.5 rounded-full mr-1" style="background-color:${groupColor}; border: 1px solid rgba(0,0,0,0.2);"></span>${groupName}</p>`; }
+                     if (node.born || node.died) { contentHtml += `<p class="text-xs text-gray-500">`; if (node.born) contentHtml += `出生: ${node.born}`; if (node.born && node.died) contentHtml += `, `; if (node.died) contentHtml += `逝世: ${node.died}`; contentHtml += `</p>`; }
+                     if (node.description) { contentHtml += `<p class="mt-2 text-xs text-gray-600"><strong class="font-semibold text-gray-700 block mb-0.5">简介:</strong> ${node.description}</p>`; }
+                     contentHtml += '</div></div>';
+                     const connectedEdgesData = network.getConnectedEdges(nodeId); let connectionsHtml = ''; let connectionCount = 0;
+                     connectedEdgesData.forEach(eId => { const edge = edgesDataSet.get(eId); if (edge && !edge.hidden) { const neighborId = edge.from === nodeId ? edge.to : edge.from; const neighborNode = nodesDataSet.get(neighborId); if (neighborNode && !neighborNode.hidden) { connectionCount++; const direction = (edge.from === nodeId) ? (edge.arrows?.to?.enabled ? '→' : '—') : (edge.arrows?.from?.enabled ? '←' : '—'); const relation = edge.label || '相关'; connectionsHtml += `<li class="text-xs py-0.5 hover:bg-gray-100 rounded"><span class="font-medium text-indigo-600">${relation}</span> ${direction} ${neighborNode.label}</li>`; } } });
+                     if (connectionCount > 0) { contentHtml += `<hr class="my-3 border-gray-200"><h4 class="font-semibold text-sm mb-1 text-gray-700">可见连接 (${connectionCount}):</h4><ul class="space-y-0.5 list-inside">${connectionsHtml}</ul>`; }
+                     infoContent.innerHTML = contentHtml;
+                 } else if (edgeId) {
+                     const edge = edgesDataSet.get(edgeId); if (!edge || edge.hidden) { infoTitle.textContent = '信息'; infoContent.innerHTML = '<p class="text-gray-500">无法显示隐藏关系的信息。</p>'; return; }
+                     const fromNode = nodesDataSet.get(edge.from); const toNode = nodesDataSet.get(edge.to);
+                     infoTitle.textContent = '关系信息';
+                     let contentHtml = `<p><strong class="font-semibold text-gray-700">类型:</strong> ${edge.label || '未定义'}</p>`;
+                     if (fromNode && toNode) { let arrow = ''; const hasTo = edge.arrows?.to?.enabled; const hasFrom = edge.arrows?.from?.enabled; if (hasTo && hasFrom) arrow = '↔'; else if (hasTo) arrow = '→'; else if (hasFrom) arrow = '←'; else arrow = '—'; contentHtml += `<p><strong class="font-semibold text-gray-700">连接:</strong> ${fromNode.label} ${arrow} ${toNode.label}</p>`; }
+                     if (edge.dashes) contentHtml += `<p class="text-sm text-red-600 mt-1">(虚线: 特殊/复杂/负面关系)</p>`;
+                     let edgeColor = edge.color?.color || networkOptions.edges.color.color; contentHtml += `<p class="text-sm mt-1"><strong class="font-semibold text-gray-700">关系颜色:</strong> <span style="color:${edgeColor}; font-weight:bold; font-size: 1.2em;">■</span></p>`;
+                     infoContent.innerHTML = contentHtml;
+                 } else {
+                     infoTitle.textContent = '详细信息'; infoContent.innerHTML = '<p class="text-gray-500 italic">请点击图谱中的节点或关系，或使用上方控件进行探索。</p>';
+                 }
+                 if (nodeId || edgeId) showInfoPanel();
+            }
+
+            /** Shows info panel */
+             function showInfoPanel() {
+                 infoPanel.classList.remove('hidden', 'w-0');
+                 if (window.innerWidth < 1024) { infoPanel.classList.add('w-full'); infoPanel.classList.remove('lg:w-96'); }
+                 else { infoPanel.classList.add('lg:w-96'); infoPanel.classList.remove('w-full'); }
+                 infoPanel.classList.add('lg:flex');
+             }
+            /** Hides info panel */
+             function hideInfoPanel() { infoPanel.classList.add('w-0', 'hidden'); infoPanel.classList.remove('lg:w-96', 'w-full', 'lg:flex'); }
+
+            /** Applies filters */
+            function applyFilters() {
+                if (!nodesDataSet || !edgesDataSet) return;
+                const nodeUpdates = []; const visibleNodeIds = new Set();
+                allNodesData.forEach(node => {
+                    const nodeGroup = node.group || 'Other'; // Assign 'Other' if no group
+                    const isVisible = activeFilters.has(nodeGroup);
+                    nodeUpdates.push({ id: node.id, hidden: !isVisible });
+                    if (isVisible) visibleNodeIds.add(node.id);
+                });
+                const edgeUpdates = [];
+                allEdgesData.forEach(edge => {
+                    const edgeVisible = visibleNodeIds.has(edge.from) && visibleNodeIds.has(edge.to);
+                    edgeUpdates.push({ id: edge.id, hidden: !edgeVisible });
+                });
+                if (nodeUpdates.length > 0) nodesDataSet.update(nodeUpdates);
+                if (edgeUpdates.length > 0) edgesDataSet.update(edgeUpdates);
+                console.log(`Applied filters. Visible nodes: ${visibleNodeIds.size}`);
+            }
+
+            /** Applies search highlighting */
+            function applySearch() {
+                 const searchTerm = searchInput.value.toLowerCase().trim();
+                 if (searchTerm === '') { applyHighlight(); return; }
+                 const matchedNodeIds = new Set();
+                 nodesDataSet.forEach(node => { if (!node.hidden) { const labelMatch = node.label && node.label.toLowerCase().includes(searchTerm); const descMatch = node.description && node.description.toLowerCase().includes(searchTerm); if (labelMatch || descMatch) matchedNodeIds.add(node.id); } });
+                 applyHighlight(null, null, matchedNodeIds);
+                 console.log(`Search found ${matchedNodeIds.size} matching visible nodes for "${searchTerm}".`);
+            }
+
+            /** Applies filters then search */
+            function applyFiltersAndSearch() { applyFilters(); applySearch(); }
+
+            /** Unfixes all nodes */
+            function unfixAllNodes() {
+                if (!nodesDataSet) return;
+                const updates = nodesDataSet.map(node => ({ id: node.id, fixed: false }));
+                if (updates.length > 0) { nodesDataSet.update(updates); console.log("Unfixed all nodes."); }
+            }
+
+            /** Handles physics toggle */
+            function handlePhysicsToggle() {
+                isPhysicsEnabled = physicsToggle.checked; if (!network) return;
+                network.setOptions({ physics: { enabled: isPhysicsEnabled } });
+                console.log(`Physics engine ${isPhysicsEnabled ? 'enabled' : 'disabled'}.`);
+            }
+
+            /** Handles reset layout */
+            function handleResetLayout() {
+                 if (!network) return; console.log("Resetting layout...");
+                 showLoadingMessage("重新计算布局..."); unfixAllNodes();
+                 if (!isPhysicsEnabled) { isPhysicsEnabled = true; physicsToggle.checked = true; network.setOptions({ physics: { enabled: true } }); console.log("Temporarily enabled physics for reset."); }
+                 else { network.stabilize(STABILIZATION_ITERATIONS); }
+            }
+
+            /** Binds event listeners */
+            function bindEventListeners() {
+                if (!network) { console.error("Network not initialized, cannot bind listeners."); return; }
+                console.log("Binding event listeners...");
+                network.on('click', (properties) => { const { nodes: nodeIds, edges: edgeIds } = properties; if (nodeIds.length > 0) { applyHighlight(nodeIds[0]); updateInfoPanel(nodeIds[0]); } else if (edgeIds.length > 0) { applyHighlight(null, edgeIds[0]); updateInfoPanel(null, edgeIds[0]); } else { applyHighlight(); updateInfoPanel(); if (window.innerWidth < 1024) hideInfoPanel(); } });
+                network.on('dragEnd', (params) => { if (params.nodes && params.nodes.length > 0) { const nodeId = params.nodes[0]; const position = network.getPositions([nodeId])[nodeId]; nodesDataSet.update({ id: nodeId, x: position.x, y: position.y, fixed: true }); console.log(`Node ${nodeId} fixed.`); } });
+                network.on('stabilizationProgress', (params) => { const progress = Math.round(params.iterations / params.total * 100); showLoadingMessage(`布局计算中... ${progress}%`); });
+                network.on('stabilizationIterationsDone', () => { hideLoadingMessage(); console.log(`Stabilization complete (${STABILIZATION_ITERATIONS} iterations).`); network.fit({ animation: { duration: FIT_ANIMATION_DURATION, easingFunction: 'easeInOutQuad' } }); if (!isPhysicsEnabled) { network.setOptions({ physics: { enabled: false } }); console.log("Physics disabled after stabilization as per toggle state."); } });
+                network.on('startStabilizing', () => { console.log("Starting stabilization..."); showLoadingMessage("正在计算布局..."); });
+                network.on("error", (err) => { console.error("Vis.js Network Error:", err); showLoadingMessage(`发生错误: ${err}`, true); });
+                searchInput.addEventListener('input', applyFiltersAndSearch);
+                clearSearchButton.addEventListener('click', () => { searchInput.value = ''; applyFiltersAndSearch(); });
+                physicsToggle.addEventListener('change', handlePhysicsToggle);
+                resetLayoutButton.addEventListener('click', handleResetLayout);
+                closePanelButton.addEventListener('click', () => { hideInfoPanel(); applyHighlight(); });
+                window.addEventListener('resize', () => { if (network) { network.redraw(); } const isLargeScreen = window.innerWidth >= 1024; if (isLargeScreen) { infoPanel.classList.remove('w-full'); if (!infoPanel.classList.contains('hidden')) { infoPanel.classList.add('lg:w-96', 'lg:flex'); } } else { infoPanel.classList.remove('lg:w-96', 'lg:flex'); if (!infoPanel.classList.contains('hidden')) { infoPanel.classList.add('w-full'); } } });
+                console.log("Event listeners bound.");
+            }
+
+            /** Shows loading message */
+            function showLoadingMessage(message = "加载中...", isError = false) {
+                loadingMessage.textContent = message;
+                loadingMessage.className = `text-lg font-semibold ${isError ? 'text-red-600' : 'text-gray-700'}`;
+                loadingOverlay.classList.remove('hidden');
+                loadingOverlay.classList.add('flex');
+            }
+            /** Hides loading message */
+            function hideLoadingMessage() {
+                loadingOverlay.classList.add('hidden');
+                loadingOverlay.classList.remove('flex');
+            }
+
+            /** Initializes the application */
+            async function initializeApp() {
+                showLoadingMessage("正在初始化图谱...");
+                try {
+                    const graphData = await loadData();
+                    setupUI();
+                    network = createNetwork(graphData);
+                    if (network) {
+                        bindEventListeners();
+                        applyFilters(); // Apply initial filters (all selected by default)
+                    } else {
+                        throw new Error("Network creation failed.");
+                    }
+                    if (!isPhysicsEnabled) {
+                        hideLoadingMessage();
+                        console.log("Initial stabilization skipped as physics are disabled.")
+                    } // Otherwise, stabilization events will hide it.
+                } catch (error) {
+                    console.error("Initialization failed:", error);
+                    // Error message already shown by loadData or createNetwork
+                }
+            }
+
+            // --- Start ---
+            initializeApp();
+
+        });
+    </script>
+
+</body>
+</html>
